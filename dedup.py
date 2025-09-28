@@ -1,82 +1,99 @@
-# dedup.py
-import os
 import re
 from rapidfuzz import fuzz
 
 # ---------------- Parsing Functions ---------------- #
-def parse_nbib(file_path):
+def parse_nbib(source):
     records = []
     record = {}
     last_tag = None
-    with open(file_path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.rstrip("\n").strip()
-            if not line:
-                if record:
-                    records.append(record)
-                    record = {}
-                last_tag = None
-                continue
-            match = re.match(r"^([A-Z0-9]+)\s*-\s*(.*)$", line)
-            if match:
-                tag, value = match.groups()
-                if tag in record:
-                    if isinstance(record[tag], list):
-                        record[tag].append(value)
-                    else:
-                        record[tag] = [record[tag], value]
+
+    # Detect if source is path or uploaded file
+    if hasattr(source, "read"):  # uploaded file
+        lines = source.read().decode("utf-8").splitlines()
+    else:  # path
+        with open(source, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+    for line in lines:
+        line = line.rstrip("\n").strip()
+        if not line:
+            if record:
+                records.append(record)
+                record = {}
+            last_tag = None
+            continue
+        match = re.match(r"^([A-Z0-9]+)\s*-\s*(.*)$", line)
+        if match:
+            tag, value = match.groups()
+            if tag in record:
+                if isinstance(record[tag], list):
+                    record[tag].append(value)
                 else:
-                    record[tag] = value
-                last_tag = tag
+                    record[tag] = [record[tag], value]
             else:
-                if last_tag:
-                    if isinstance(record[last_tag], list):
-                        record[last_tag][-1] += " " + line
-                    else:
-                        record[last_tag] += " " + line
+                record[tag] = value
+            last_tag = tag
+        else:
+            if last_tag:
+                if last_tag not in record:
+                    record[last_tag] = line
+                elif isinstance(record[last_tag], list):
+                    record[last_tag][-1] += " " + line
+                else:
+                    record[last_tag] += " " + line
     if record:
         records.append(record)
     return records
 
 
-def parse_ris(file_path):
+def parse_ris(source):
     records = []
     record = {}
     last_tag = None
     pattern = r"^([A-Z0-9]{2})  - (.*)$"
-    with open(file_path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.rstrip("\n").strip()
-            if line == "ER  -":
-                if record:
-                    records.append(record)
-                    record = {}
-                last_tag = None
-                continue
-            match = re.match(pattern, line)
-            if match:
-                tag, value = match.groups()
-                if tag in record:
-                    if isinstance(record[tag], list):
-                        record[tag].append(value)
-                    else:
-                        record[tag] = [record[tag], value]
+
+    # Detect if source is path or uploaded file
+    if hasattr(source, "read"):  # uploaded file
+        lines = source.read().decode("utf-8").splitlines()
+    else:  # path
+        with open(source, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+    for line in lines:
+        line = line.rstrip("\n").strip()
+        if line == "ER  -":
+            if record:
+                records.append(record)
+                record = {}
+            last_tag = None
+            continue
+        match = re.match(pattern, line)
+        if match:
+            tag, value = match.groups()
+            if tag in record:
+                if isinstance(record[tag], list):
+                    record[tag].append(value)
                 else:
-                    record[tag] = value
-                last_tag = tag
+                    record[tag] = [record[tag], value]
             else:
-                if last_tag:
-                    if isinstance(record[last_tag], list):
-                        record[last_tag][-1] += " " + line
-                    else:
-                        record[last_tag] += " " + line
+                record[tag] = value
+            last_tag = tag
+        else:
+            if last_tag:
+                if last_tag not in record:
+                    record[last_tag] = line
+                elif isinstance(record[last_tag], list):
+                    record[last_tag][-1] += " " + line
+                else:
+                    record[last_tag] += " " + line
     return records
 
 
 # ---------------- RIS Export ---------------- #
 def record_to_ris(record):
     ris_lines = ["TY  - JOUR"]
-    for tag, value in record.items():
+    for tag in record:
+        value = record[tag]
         if isinstance(value, list):
             for v in value:
                 ris_lines.append(f"{tag}  - {v}")
@@ -122,25 +139,3 @@ def remove_duplicates(records, title_threshold=90):
                 seen_ids.add(doi)
 
     return cleaned
-
-
-# ---------------- Processing Function ---------------- #
-def process_files(files, title_threshold=90):
-    all_records = []
-    file_counts = {}
-
-    for file_path in files:
-        records_from_file = []
-        if file_path.lower().endswith(".nbib"):
-            records_from_file = parse_nbib(file_path)
-        elif file_path.lower().endswith(".ris"):
-            records_from_file = parse_ris(file_path)
-
-        file_counts[os.path.basename(file_path)] = len(records_from_file)
-        all_records.extend(records_from_file)
-
-    total_records_before = len(all_records)
-    cleaned_records = remove_duplicates(all_records, title_threshold=title_threshold)
-    total_records_after = len(cleaned_records)
-
-    return file_counts, total_records_before, total_records_after, cleaned_records
