@@ -3,7 +3,7 @@ from dedup import process_uploaded_files, record_to_ris
 
 # ---------------- Page Config ---------------- #
 st.set_page_config(
-    page_title="RefDedup",
+    page_title="Refedup",
     page_icon="assets/favicon.png",  # Replace with your professional icon
     layout="wide"
 )
