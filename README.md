@@ -14,7 +14,7 @@ A Python-powered desktop app for detecting and removing duplicate references in 
 
 ---
 
-## 📥 Installation
+##  Installation
 
 ### Option 1: Run Executable
 
@@ -43,7 +43,7 @@ A Python-powered desktop app for detecting and removing duplicate references in 
 
 ---
 
-## 🖥️ Usage
+##  Usage
 
 1. Open the app.
 2. Paste the folder path containing your `.ris` / `.nbib` files.
@@ -64,13 +64,13 @@ Output: 2025 unique references (1058 duplicates removed).
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License** – see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🙌 Credits
+##  Credits
 
 Developed by **Mohamed Abu Elainien**.
 
