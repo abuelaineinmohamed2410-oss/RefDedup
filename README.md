@@ -27,7 +27,7 @@ A Python-powered desktop app for detecting and removing duplicate references in 
 1. Clone this repository:
 
    ```bash
-   git clone https://github.com/YOUR_USERNAME/RefDedup.git
+   git clone git clone https://github.com/abuelaineinmohamed2410-oss/RefDedup.git
    cd RefDedup
    ```
 2. Install requirements:
