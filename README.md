@@ -20,7 +20,7 @@ A Python-powered desktop app for detecting and removing duplicate references in 
 
 1. Download the latest release from the [Releases](../../releases) page.
 2. Extract the `.zip` file.
-3. Run `RefDedup.exe`.
+3. Run `app.exe`.
 
 ### Option 2: Run from Source
 
