@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 from dedup import parse_nbib, parse_ris, remove_duplicates, record_to_ris
 import io
@@ -44,4 +43,3 @@ st.markdown("<p style='text-align: center;'>Developed by <b>Mohamed Abu Elainien
 st.markdown("<p style='text-align: center;'>GitHub: "
             "<a href='https://github.com/abuelaineinmohamed2410-oss' target='_blank'>RefDedup</a></p>",
             unsafe_allow_html=True)
-```
