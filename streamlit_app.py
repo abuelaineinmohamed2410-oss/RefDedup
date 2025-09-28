@@ -23,7 +23,7 @@ st.markdown(
 
 # ---------------- File Upload ---------------- #
 uploaded_files = st.file_uploader(
-    "📂 Upload your reference files",
+    "Upload your reference files",
     type=["nbib", "ris"],
     accept_multiple_files=True
 )
@@ -44,7 +44,7 @@ if uploaded_files:
     if all_records:
         st.markdown(
             f"<div style='padding: 15px; background-color: #27AE60; color: white; border-radius: 8px;'>"
-            f"✅ Total records uploaded: <b>{len(all_records)}</b></div>",
+            f"Total records uploaded: <b>{len(all_records)}</b></div>",
             unsafe_allow_html=True
         )
 
@@ -52,7 +52,7 @@ if uploaded_files:
 
         st.markdown(
             f"<div style='padding: 15px; background-color: #2980B9; color: white; border-radius: 8px;'>"
-            f"📊 Total records after removing duplicates: <b>{len(cleaned_records)}</b></div>",
+            f"Total records after removing duplicates: <b>{len(cleaned_records)}</b></div>",
             unsafe_allow_html=True
         )
 
@@ -61,7 +61,7 @@ if uploaded_files:
         ris_bytes = io.BytesIO(ris_output.encode("utf-8"))
 
         st.download_button(
-            label="⬇️ Download Cleaned References",
+            label=" Download Cleaned References",
             data=ris_bytes,
             file_name="cleaned_references.ris",
             mime="text/plain"
