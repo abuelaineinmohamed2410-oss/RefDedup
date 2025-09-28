@@ -2,20 +2,12 @@ import re
 from rapidfuzz import fuzz
 
 # ---------------- Parsing Functions ---------------- #
-def parse_nbib(source):
+def parse_nbib_from_string(content):
     records = []
     record = {}
     last_tag = None
-
-    # Detect if source is path or uploaded file
-    if hasattr(source, "read"):  # uploaded file
-        lines = source.read().decode("utf-8").splitlines()
-    else:  # path
-        with open(source, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-
-    for line in lines:
-        line = line.rstrip("\n").strip()
+    for line in content.splitlines():
+        line = line.strip()
         if not line:
             if record:
                 records.append(record)
@@ -45,22 +37,13 @@ def parse_nbib(source):
         records.append(record)
     return records
 
-
-def parse_ris(source):
+def parse_ris_from_string(content):
     records = []
     record = {}
     last_tag = None
     pattern = r"^([A-Z0-9]{2})  - (.*)$"
-
-    # Detect if source is path or uploaded file
-    if hasattr(source, "read"):  # uploaded file
-        lines = source.read().decode("utf-8").splitlines()
-    else:  # path
-        with open(source, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-
-    for line in lines:
-        line = line.rstrip("\n").strip()
+    for line in content.splitlines():
+        line = line.strip()
         if line == "ER  -":
             if record:
                 records.append(record)
@@ -86,8 +69,9 @@ def parse_ris(source):
                     record[last_tag][-1] += " " + line
                 else:
                     record[last_tag] += " " + line
+    if record:
+        records.append(record)
     return records
-
 
 # ---------------- RIS Export ---------------- #
 def record_to_ris(record):
@@ -101,7 +85,6 @@ def record_to_ris(record):
             ris_lines.append(f"{tag}  - {value}")
     ris_lines.append("ER  -")
     return "\n".join(ris_lines)
-
 
 # ---------------- Duplicate Removal ---------------- #
 def remove_duplicates(records, title_threshold=90):
@@ -139,3 +122,24 @@ def remove_duplicates(records, title_threshold=90):
                 seen_ids.add(doi)
 
     return cleaned
+
+# ---------------- Streamlit-upload compatible ---------------- #
+def process_uploaded_files(uploaded_files, title_threshold=90):
+    all_records = []
+
+    for uploaded_file in uploaded_files:
+        file_name = uploaded_file.name.lower()
+        content = uploaded_file.getvalue().decode("utf-8")
+
+        if file_name.endswith(".nbib"):
+            records = parse_nbib_from_string(content)
+        elif file_name.endswith(".ris"):
+            records = parse_ris_from_string(content)
+        else:
+            continue
+        all_records.extend(records)
+
+    total_before = len(all_records)
+    cleaned_records = remove_duplicates(all_records, title_threshold=title_threshold)
+    total_after = len(cleaned_records)
+    return cleaned_records, total_before, total_after
