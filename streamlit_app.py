@@ -1,55 +1,67 @@
 import streamlit as st
-from dedup import parse_ris, parse_nbib, remove_duplicates, record_to_ris
-import os
+from dedup import process_uploaded_files, record_to_ris
 
-st.set_page_config(page_title="RefDedup", layout="wide")
+# ---------------- Page Config ---------------- #
+st.set_page_config(
+    page_title="RefDedup",
+    page_icon="assets/favicon.png",  # Add your professional favicon here
+    layout="wide"
+)
 
-st.title("RefDedup: Duplicate Reference Remover")
-st.markdown("""
-RefDedup is a Python-powered app for detecting and removing duplicate references in RIS/NBIB files.
-Developed by **Mohamed Abu Elainein**.
-""")
+# ---------------- Header ---------------- #
+st.markdown(
+    """
+    <div style="background-color:#004080;padding:15px;border-radius:10px">
+        <h1 style="color:white;text-align:center;">RefDedup: Duplicate Checker Removal</h1>
+        <p style="color:white;text-align:center;">Developed by Mohamed Abu Elainein</p>
+    </div>
+    """, unsafe_allow_html=True
+)
 
-st.write("Upload one or more `.ris` or `.nbib` files to remove duplicates automatically.")
+st.write("---")
 
+# ---------------- Upload Section ---------------- #
+st.markdown("### Upload Your RIS/NBIB Files")
 uploaded_files = st.file_uploader(
-    "Choose RIS or NBIB files",
-    type=["ris", "nbib"],
+    "Select RIS or NBIB files", 
+    type=['ris', 'nbib'], 
     accept_multiple_files=True
 )
 
 if uploaded_files:
-    all_records = []
-    file_info = []
+    st.markdown("#### Uploaded Files")
+    for file in uploaded_files:
+        st.write(f"- {file.name}")
 
-    for uploaded_file in uploaded_files:
-        filename = uploaded_file.name
-        if filename.lower().endswith(".ris"):
-            records = parse_ris(uploaded_file)
-        else:
-            records = parse_nbib(uploaded_file)
+# ---------------- Processing Section ---------------- #
+if st.button("Start Deduplication"):
+    if not uploaded_files:
+        st.warning("Please upload at least one RIS or NBIB file first.")
+    else:
+        st.info("Processing files...")
+        cleaned_records, total_before, total_after = process_uploaded_files(uploaded_files, title_threshold=90)
+        
+        st.success("Deduplication Complete!")
+        st.markdown(f"**Total Records Before:** {total_before}")
+        st.markdown(f"**Total Records After:** {total_after}")
+        st.markdown(f"**Duplicates Removed:** {total_before - total_after}")
 
-        all_records.extend(records)
-        file_info.append(f"{filename}: {len(records)} records")
+        # ---------------- Download Section ---------------- #
+        ris_content = "\n\n".join([record_to_ris(r) for r in cleaned_records])
+        st.download_button(
+            label="Download Cleaned RIS",
+            data=ris_content,
+            file_name="cleaned_references.ris",
+            mime="text/plain"
+        )
 
-    st.subheader("Uploaded Files Summary")
-    st.write("\n".join(file_info))
-
-    # Remove duplicates (fixed 90% similarity)
-    cleaned_records = remove_duplicates(all_records, title_threshold=90)
-
-    st.subheader("Deduplication Result")
-    st.write(f"Total records before deduplication: {len(all_records)}")
-    st.write(f"Total unique records after deduplication: {len(cleaned_records)}")
-
-    # Prepare file for download
-    output_content = "\n\n".join([record_to_ris(rec) for rec in cleaned_records])
-    st.download_button(
-        label="Download Cleaned RIS",
-        data=output_content,
-        file_name="cleaned_references.ris",
-        mime="text/plain"
-    )
-
-st.markdown("---")
-st.markdown("Developed by **Mohamed Abu Elainein** | RefDedup V1")
+# ---------------- Footer ---------------- #
+st.markdown(
+    """
+    <div style="background-color:#004080;padding:10px;border-radius:10px;margin-top:20px;">
+        <p style="color:white;text-align:center;">
+            RefDedup &copy; 2025 | Developed by Mohamed Abu Elainein
+        </p>
+    </div>
+    """, unsafe_allow_html=True
+)
