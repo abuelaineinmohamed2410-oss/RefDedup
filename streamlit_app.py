@@ -35,7 +35,7 @@ st.markdown(
     }
     /* Header text */
     .header-box h4  {
-        color: white;
+        color: orange;
         margin: 0;
     }
     /* Other texts */
