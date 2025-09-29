@@ -29,7 +29,7 @@ st.markdown(
         text-align: center;
     }
     /* Header text */
-    .header-box h1 {
+    .header-box h1,h4 {
         color: white;
         margin: 0;
     }
