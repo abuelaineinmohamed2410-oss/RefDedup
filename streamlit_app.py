@@ -5,7 +5,7 @@ import streamlit as st
 st.set_page_config(
     page_title="RefDedup - Duplicate Checker Removal",
     page_icon="logo.png",  
-    layout="centered"
+    layout="centered" 
 )
 
 # ---------------- Custom CSS ---------------- #
