@@ -1,10 +1,6 @@
 import streamlit as st
 
-# Try importing depup.py or dedup.py depending on your repo
-try:
-    from depup import process_uploaded_files, record_to_ris
-except ModuleNotFoundError:
-    from dedup import process_uploaded_files, record_to_ris
+
 
 # ---------------- Page Config ---------------- #
 st.set_page_config(
