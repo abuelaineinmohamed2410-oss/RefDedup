@@ -38,7 +38,7 @@ st.markdown(
     }
     /* Header subtext */
     .header-box h4 {
-        color: white;
+        color: orange;
         margin: 5px 0 0 0;
         font-weight: normal;
     }
