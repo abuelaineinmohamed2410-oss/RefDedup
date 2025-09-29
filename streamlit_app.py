@@ -93,8 +93,8 @@ if uploaded_files:
         st.error(f"An error occurred during processing: {e}")
 
 # ---------------- Sidebar ---------------- #
-st.footer.header("About RefDedup")
-st.footer.write(
+st.sidebar.header("About RefDedup")
+st.sidebaar.write(
     """
     **RefDedup**  
     Developed by **Mohamed Abu Elainein**  
