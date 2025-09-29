@@ -74,7 +74,7 @@ if uploaded_files:
     st.info("Processing files... This may take a few seconds.")
 
     try:
-        # Call the processing function from depup/dedup
+        # Call the processing function from dedup
         cleaned_records, total_before, total_after = process_uploaded_files(
             uploaded_files, title_threshold=90
         )
