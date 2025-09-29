@@ -1,11 +1,66 @@
 import streamlit as st
-from dedup import process_uploaded_files, record_to_ris  # Fixed import
+from dedup import process_uploaded_files, record_to_ris
 
 # ---------------- Page Config ---------------- #
 st.set_page_config(
     page_title="RefDedup - Duplicate Checker Removal",
-    page_icon="logo.png",  # Your professional logo in repo root
+    page_icon="logo.png",  # Professional logo in repo root
     layout="centered"
+)
+
+# ---------------- Custom CSS for Dark Blue Theme ---------------- #
+st.markdown(
+    """
+    <style>
+    /* Main background */
+    .stApp {
+        background-color: #0D1B2A;
+        color: #E0E1DD;
+        font-family: 'Arial', sans-serif;
+    }
+
+    /* Sidebar */
+    .css-1d391kg { 
+        background-color: #1B263B;
+        color: #E0E1DD;
+    }
+
+    /* Headings */
+    .css-10trblm { 
+        color: #E0E1DD;
+    }
+
+    /* File uploader button */
+    .stButton>button {
+        background-color: #415A77;
+        color: #E0E1DD;
+        border-radius: 5px;
+        height: 40px;
+        width: 250px;
+    }
+
+    /* Success messages */
+    .stSuccess {
+        background-color: #1B263B;
+        color: #A5BECC;
+    }
+
+    /* Info messages */
+    .stInfo {
+        background-color: #1B263B;
+        color: #A5BECC;
+    }
+
+    /* Download button */
+    .stDownloadButton>button {
+        background-color: #778DA9;
+        color: #E0E1DD;
+        border-radius: 5px;
+        height: 40px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
 )
 
 # ---------------- Sidebar ---------------- #
