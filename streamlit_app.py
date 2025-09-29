@@ -94,7 +94,7 @@ if uploaded_files:
 
 # ---------------- Sidebar ---------------- #
 st.sidebar.header("About RefDedup")
-st.sidebaar.write(
+st.sidebar.write(
     """
     **RefDedup**  
     Developed by **Mohamed Abu Elainein**  
