@@ -1,26 +1,10 @@
 import streamlit as st
-import streamlit.components.v1 as components
-
-# ---------------- Google Analytics ---------------- #
-components.html(
-    """
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KDY8QBHH3H"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-KDY8QBHH3H');
-    </script>
-    """,
-    height=0,  
-)
+from dedup import process_uploaded_files, record_to_ris  # Correct import
 
 # ---------------- Page Config ---------------- #
 st.set_page_config(
     page_title="RefDedup - Duplicate Checker Removal",
-    page_icon="logo.png",  
+    page_icon="logo.png",  # your logo file in repo root
     layout="centered"
 )
 
@@ -61,13 +45,13 @@ st.markdown(
     """
     <div class="header-box">
         <h1>RefDedup - Duplicate Checker Removal</h1>
-        <h4>A Pre Release Version</h4>
+        <h4>Developed by Mohamed Abu Elainein</h4>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-st.write("Upload your RIS or NBIB files below to remove duplicates based on Title, DOI and PMID.")
+st.write("Upload your RIS or NBIB files below to remove duplicates based on Title, DOI, PMID, and Authors.")
 
 # ---------------- File Uploader ---------------- #
 uploaded_files = st.file_uploader(
@@ -110,6 +94,6 @@ st.sidebar.write(
     Developed by **Mohamed Abu Elainein**  
 
     Remove duplicate references from **RIS** and **NBIB** files  
-    based on **Title, DOI and PMID**.
+    based on **Title, DOI, PMID, and Authors**.
     """
 )
