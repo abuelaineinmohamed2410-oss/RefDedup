@@ -98,6 +98,7 @@ if uploaded_files:
     except Exception as e:
         st.error(f"An error occurred during processing: {e}")
 
+
 # ---------------- Sidebar ---------------- #
 st.sidebar.header("About RefDedup")
 st.sidebar.write(
