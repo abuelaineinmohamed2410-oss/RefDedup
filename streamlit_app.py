@@ -1,5 +1,21 @@
 import streamlit as st
-from dedup import process_uploaded_files, record_to_ris  # Correct import
+import streamlit.components.v1 as components
+
+# ---------------- Google Analytics ---------------- #
+components.html(
+    """
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KDY8QBHH3H"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-KDY8QBHH3H');
+    </script>
+    """,
+    height=0,  # Invisible in the page
+)
 
 # ---------------- Page Config ---------------- #
 st.set_page_config(
