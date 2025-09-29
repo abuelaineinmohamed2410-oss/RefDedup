@@ -1,5 +1,11 @@
 import streamlit as st
 
+# ---------------- Import dedup module ---------------- #
+# Try importing depup.py or dedup.py depending on your repo
+try:
+    from depup import process_uploaded_files, record_to_ris
+except ModuleNotFoundError:
+    from dedup import process_uploaded_files, record_to_ris
 
 # ---------------- Page Config ---------------- #
 st.set_page_config(
@@ -32,7 +38,7 @@ st.markdown(
     }
     /* Header subtext */
     .header-box h4 {
-        color: orange;
+        color: white;
         margin: 5px 0 0 0;
         font-weight: normal;
     }
@@ -59,7 +65,7 @@ st.markdown(
 # ---------------- Description ---------------- #
 st.write(
     "Upload your **RIS** or **NBIB** files below to remove duplicates "
-    "based on **Title, DOI and PMID**."
+    "based on **Title, DOI, PMID, and Authors**."
 )
 
 # ---------------- File Uploader ---------------- #
@@ -74,7 +80,7 @@ if uploaded_files:
     st.info("Processing files... This may take a few seconds.")
 
     try:
-        # Call the processing function from dedup.py
+        # Call the processing function from depup/dedup
         cleaned_records, total_before, total_after = process_uploaded_files(
             uploaded_files, title_threshold=90
         )
@@ -98,7 +104,6 @@ if uploaded_files:
     except Exception as e:
         st.error(f"An error occurred during processing: {e}")
 
-
 # ---------------- Sidebar ---------------- #
 st.sidebar.header("About RefDedup")
 st.sidebar.write(
@@ -107,6 +112,6 @@ st.sidebar.write(
     Developed by **Mohamed Abu Elainein**  
 
     Remove duplicate references from **RIS** and **NBIB** files  
-    based on **Title, DOI and PMID**.
+    based on **Title, DOI, PMID, and Authors**.
     """
 )
