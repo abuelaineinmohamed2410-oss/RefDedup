@@ -35,7 +35,7 @@ st.markdown(
     }
     /* Other texts */
     .stText, .stMarkdown {
-        color: orange;
+        color: black;
     }
     </style>
     """, unsafe_allow_html=True
