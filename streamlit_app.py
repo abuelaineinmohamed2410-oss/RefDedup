@@ -4,9 +4,10 @@ from dedup import process_uploaded_files, record_to_ris
 # ---------------- Page Config ---------------- #
 st.set_page_config(
     page_title="RefDedup",
-    page_icon="RefDedup/logo.png",  # points to your uploaded logo
+    page_icon="logo.png",  # or "assets/logo.png" if in assets folder
     layout="wide"
 )
+
 
 
 # ---------------- Header ---------------- #
