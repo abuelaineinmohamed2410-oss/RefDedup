@@ -1,5 +1,6 @@
 import streamlit as st
 
+# ---------------- Import dedup module ---------------- #
 # Try importing depup.py or dedup.py depending on your repo
 try:
     from depup import process_uploaded_files, record_to_ris
@@ -9,7 +10,7 @@ except ModuleNotFoundError:
 # ---------------- Page Config ---------------- #
 st.set_page_config(
     page_title="RefDedup - Duplicate Checker Removal",
-    page_icon="logo.png",  # your logo file in repo root
+    page_icon="logo.png",  # Your logo file in repo root
     layout="centered"
 )
 
@@ -24,26 +25,30 @@ st.markdown(
     /* Header rectangle */
     .header-box {
         background-color: #0B3D91;  /* Dark blue */
-        padding: 20px;
+        padding: 25px;
         border-radius: 10px;
         text-align: center;
+        margin-bottom: 20px;
     }
-    /* Header text */
+    /* Header main text */
     .header-box h1 {
         color: white;
         margin: 0;
+        font-size: 32px;
     }
-    /* Header text */
+    /* Header subtext */
     .header-box h4 {
-        color: orange;
-        margin: 0;
+        color: white;
+        margin: 5px 0 0 0;
+        font-weight: normal;
     }
-    /* Other texts */
+    /* Other text */
     .stText, .stMarkdown {
         color: black;
     }
     </style>
-    """, unsafe_allow_html=True
+    """,
+    unsafe_allow_html=True
 )
 
 # ---------------- Header ---------------- #
@@ -57,7 +62,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.write("Upload your RIS or NBIB files below to remove duplicates based on Title, DOI, PMID, and Authors.")
+# ---------------- Description ---------------- #
+st.write(
+    "Upload your **RIS** or **NBIB** files below to remove duplicates "
+    "based on **Title, DOI, PMID, and Authors**."
+)
 
 # ---------------- File Uploader ---------------- #
 uploaded_files = st.file_uploader(
@@ -71,7 +80,10 @@ if uploaded_files:
     st.info("Processing files... This may take a few seconds.")
 
     try:
-        cleaned_records, total_before, total_after = process_uploaded_files(uploaded_files, title_threshold=90)
+        # Call the processing function from depup/dedup
+        cleaned_records, total_before, total_after = process_uploaded_files(
+            uploaded_files, title_threshold=90
+        )
 
         # Generate cleaned RIS content
         cleaned_content = "\n\n".join([record_to_ris(rec) for rec in cleaned_records])
