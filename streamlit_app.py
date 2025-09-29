@@ -13,7 +13,7 @@ st.markdown(
     """
     <div style="background-color:#004080;padding:15px;border-radius:10px">
         <h1 style="color:white;text-align:center;">RefDedup: Duplicate Checker Removal</h1>
-        <p style="color:white;text-align:center;">Developed by Mohamed Abu Elainein</p>
+        <p style="color:white;text-align:center;">Pre Release Version</p>
     </div>
     """, unsafe_allow_html=True
 )
