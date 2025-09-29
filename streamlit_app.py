@@ -1,11 +1,5 @@
 import streamlit as st
 
-# ---------------- Import dedup module ---------------- #
-# Try importing depup.py or dedup.py depending on your repo
-try:
-    from depup import process_uploaded_files, record_to_ris
-except ModuleNotFoundError:
-    from dedup import process_uploaded_files, record_to_ris
 
 # ---------------- Page Config ---------------- #
 st.set_page_config(
@@ -65,7 +59,7 @@ st.markdown(
 # ---------------- Description ---------------- #
 st.write(
     "Upload your **RIS** or **NBIB** files below to remove duplicates "
-    "based on **Title, DOI, PMID, and Authors**."
+    "based on **Title, DOI and PMID**."
 )
 
 # ---------------- File Uploader ---------------- #
@@ -112,6 +106,6 @@ st.sidebar.write(
     Developed by **Mohamed Abu Elainein**  
 
     Remove duplicate references from **RIS** and **NBIB** files  
-    based on **Title, DOI, PMID, and Authors**.
+    based on **Title, DOI and PMID**.
     """
 )
