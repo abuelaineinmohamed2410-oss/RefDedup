@@ -45,13 +45,13 @@ st.markdown(
     """
     <div class="header-box">
         <h1>RefDedup - Duplicate Checker Removal</h1>
-        <h4>Developed by Mohamed Abu Elainein</h4>
+        <h4>A Pre Release Version</h4>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-st.write("Upload your RIS or NBIB files below to remove duplicates based on Title, DOI, PMID, and Authors.")
+st.write("Upload your RIS or NBIB files below to remove duplicates based on Title, DOI and PMID.")
 
 # ---------------- File Uploader ---------------- #
 uploaded_files = st.file_uploader(
@@ -94,6 +94,6 @@ st.sidebar.write(
     Developed by **Mohamed Abu Elainein**  
 
     Remove duplicate references from **RIS** and **NBIB** files  
-    based on **Title, DOI, PMID, and Authors**.
+    based on **Title, DOI and PMID**.
     """
 )
