@@ -33,6 +33,11 @@ st.markdown(
         color: white;
         margin: 0;
     }
+    /* Header text */
+    .header-box h4 {
+        color: orange;
+        margin: 0;
+    }
     /* Other texts */
     .stText, .stMarkdown {
         color: black;
@@ -46,7 +51,7 @@ st.markdown(
     """
     <div class="header-box">
         <h1>RefDedup - Duplicate Checker Removal</h1>
-        <p>Developed by Mohamed Abu Elainein</p>
+        <h4>Developed by Mohamed Abu Elainein</h4>
     </div>
     """,
     unsafe_allow_html=True
