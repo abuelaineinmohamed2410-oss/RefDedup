@@ -46,7 +46,7 @@ st.markdown(
     """
     <div class="header-box">
         <h1>RefDedup - Duplicate Checker Removal</h1>
-        <p>Developed by Mohamed Abu Elainein</p>
+        <h2>Developed by Mohamed Abu Elainein</h2>
     </div>
     """,
     unsafe_allow_html=True
