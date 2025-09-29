@@ -1,7 +1,6 @@
 import streamlit as st
 
 
-
 # ---------------- Page Config ---------------- #
 st.set_page_config(
     page_title="RefDedup - Duplicate Checker Removal",
