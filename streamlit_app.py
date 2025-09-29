@@ -51,7 +51,7 @@ st.markdown(
     """
     <div class="header-box">
         <h1>RefDedup - Duplicate Checker Removal</h1>
-        <h4>Developed by Mohamed Abu Elainein</h4>
+        <h4>A Pre Release Version</h4>
     </div>
     """,
     unsafe_allow_html=True
@@ -93,8 +93,8 @@ if uploaded_files:
         st.error(f"An error occurred during processing: {e}")
 
 # ---------------- Sidebar ---------------- #
-st.sidebar.header("About RefDedup")
-st.sidebar.write(
+st.footer.header("About RefDedup")
+st.footer.write(
     """
     **RefDedup**  
     Developed by **Mohamed Abu Elainein**  
