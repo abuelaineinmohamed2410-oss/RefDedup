@@ -1,11 +1,16 @@
 import streamlit as st
 
+# Try importing depup.py or dedup.py depending on your repo
+try:
+    from depup import process_uploaded_files, record_to_ris
+except ModuleNotFoundError:
+    from dedup import process_uploaded_files, record_to_ris
 
 # ---------------- Page Config ---------------- #
 st.set_page_config(
     page_title="RefDedup - Duplicate Checker Removal",
-    page_icon="logo.png",  
-    layout="centered" 
+    page_icon="logo.png",  # your logo file in repo root
+    layout="centered"
 )
 
 # ---------------- Custom CSS ---------------- #
@@ -24,13 +29,8 @@ st.markdown(
         text-align: center;
     }
     /* Header text */
-    .header-box h1  {
+    .header-box h1 {
         color: white;
-        margin: 0;
-    }
-    /* Header text */
-    .header-box h4  {
-        color: orange;
         margin: 0;
     }
     /* Other texts */
@@ -46,13 +46,13 @@ st.markdown(
     """
     <div class="header-box">
         <h1>RefDedup - Duplicate Checker Removal</h1>
-        <h4>A Pre Release Version</h4>
+        <p>Developed by Mohamed Abu Elainein</p>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-st.write("Upload your RIS or NBIB files below to remove duplicates based on Title, DOI and PMID.")
+st.write("Upload your RIS or NBIB files below to remove duplicates based on Title, DOI, PMID, and Authors.")
 
 # ---------------- File Uploader ---------------- #
 uploaded_files = st.file_uploader(
@@ -95,6 +95,6 @@ st.sidebar.write(
     Developed by **Mohamed Abu Elainein**  
 
     Remove duplicate references from **RIS** and **NBIB** files  
-    based on **Title, DOI and PMID**.
+    based on **Title, DOI, PMID, and Authors**.
     """
 )
