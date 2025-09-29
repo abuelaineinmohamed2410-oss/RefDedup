@@ -9,7 +9,7 @@ except ModuleNotFoundError:
 # ---------------- Page Config ---------------- #
 st.set_page_config(
     page_title="RefDedup - Duplicate Checker Removal",
-    page_icon="logo.png",  # your logo file in repo root
+    page_icon="logo.png",  
     layout="centered"
 )
 
@@ -35,7 +35,7 @@ st.markdown(
     }
     /* Other texts */
     .stText, .stMarkdown {
-        color: black;
+        color: orange;
     }
     </style>
     """, unsafe_allow_html=True
