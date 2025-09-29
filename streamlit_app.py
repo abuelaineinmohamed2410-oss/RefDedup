@@ -14,13 +14,13 @@ components.html(
       gtag('config', 'G-KDY8QBHH3H');
     </script>
     """,
-    height=0,  # Invisible in the page
+    height=0,  
 )
 
 # ---------------- Page Config ---------------- #
 st.set_page_config(
     page_title="RefDedup - Duplicate Checker Removal",
-    page_icon="logo.png",  # your logo file in repo root
+    page_icon="logo.png",  
     layout="centered"
 )
 
