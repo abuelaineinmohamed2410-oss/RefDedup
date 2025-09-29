@@ -52,7 +52,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.write("Upload your RIS or NBIB files below to remove duplicates based on Title, DOI, PMID, and Authors.")
+st.write("Upload your RIS or NBIB files below to remove duplicates based on Title, DOI and PMID.")
 
 # ---------------- File Uploader ---------------- #
 uploaded_files = st.file_uploader(
@@ -95,6 +95,6 @@ st.sidebar.write(
     Developed by **Mohamed Abu Elainein**  
 
     Remove duplicate references from **RIS** and **NBIB** files  
-    based on **Title, DOI, PMID, and Authors**.
+    based on **Title, DOI and PMID**.
     """
 )
