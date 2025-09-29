@@ -4,7 +4,7 @@ from dedup import process_uploaded_files, record_to_ris
 # ---------------- Page Config ---------------- #
 st.set_page_config(
     page_title="RefDedup - Duplicate Checker Removal",
-    page_icon="logo.png",  # Professional logo in repo root
+    page_icon="logo.png",
     layout="centered"
 )
 
@@ -12,51 +12,56 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    /* Main background */
+    /* Main app background and text */
     .stApp {
-        background-color: #0D1B2A;
-        color: #E0E1DD;
+        background-color: #0B1D3F;  /* Dark blue */
+        color: #F0F0F0;             /* Light grey text */
         font-family: 'Arial', sans-serif;
     }
 
     /* Sidebar */
     .css-1d391kg { 
-        background-color: #1B263B;
-        color: #E0E1DD;
+        background-color: #12264D;   /* Slightly lighter dark blue */
+        color: #F0F0F0;
     }
 
     /* Headings */
     .css-10trblm { 
-        color: #E0E1DD;
+        color: #F0F0F0;
     }
 
-    /* File uploader button */
+    /* Buttons */
     .stButton>button {
-        background-color: #415A77;
-        color: #E0E1DD;
+        background-color: #1F4E79; /* medium blue */
+        color: #FFFFFF;
         border-radius: 5px;
         height: 40px;
         width: 250px;
     }
 
-    /* Success messages */
-    .stSuccess {
-        background-color: #1B263B;
-        color: #A5BECC;
+    /* Download button */
+    .stDownloadButton>button {
+        background-color: #3B6990; /* lighter blue */
+        color: #FFFFFF;
+        border-radius: 5px;
+        height: 40px;
     }
 
     /* Info messages */
     .stInfo {
-        background-color: #1B263B;
-        color: #A5BECC;
+        background-color: #1F4E79;
+        color: #FFFFFF;
     }
 
-    /* Download button */
-    .stDownloadButton>button {
-        background-color: #778DA9;
-        color: #E0E1DD;
-        border-radius: 5px;
-        height: 40px;
+    /* Success messages */
+    .stSuccess {
+        background-color: #3B6990;
+        color: #FFFFFF;
+    }
+
+    /* File uploader text */
+    .stFileUploader>div>div>div>div {
+        color: #FFFFFF;
     }
     </style>
     """,
