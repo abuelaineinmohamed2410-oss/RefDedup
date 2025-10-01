@@ -89,6 +89,7 @@ def record_to_ris(record):
 # ---------------- Duplicate Removal ---------------- #
 def remove_duplicates(records, title_threshold=90):
     cleaned = []
+    duplicates = []
     seen_titles = []
     seen_ids = set()  # for PMID or DOI
 
@@ -120,8 +121,10 @@ def remove_duplicates(records, title_threshold=90):
                 seen_ids.add(pmid)
             if doi:
                 seen_ids.add(doi)
+        else:
+            duplicates.append(rec)
 
-    return cleaned
+    return cleaned, duplicates
 
 # ---------------- Streamlit-upload compatible ---------------- #
 def process_uploaded_files(uploaded_files, title_threshold=90):
@@ -140,6 +143,7 @@ def process_uploaded_files(uploaded_files, title_threshold=90):
         all_records.extend(records)
 
     total_before = len(all_records)
-    cleaned_records = remove_duplicates(all_records, title_threshold=title_threshold)
+    cleaned_records, duplicate_records = remove_duplicates(all_records, title_threshold=title_threshold)
     total_after = len(cleaned_records)
-    return cleaned_records, total_before, total_after
+
+    return cleaned_records, duplicate_records, total_before, total_after
