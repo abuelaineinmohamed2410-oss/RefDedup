@@ -1,91 +1,110 @@
+import rispy
 import bibtexparser
 import csv
+import io
 import json
-from io import StringIO
+import xml.etree.ElementTree as ET
 from difflib import SequenceMatcher
 
-# ---------- Parsing different file types ----------
-def parse_file(uploaded_file):
-    """Parse uploaded reference file into a list of dicts"""
-    name = uploaded_file.name.lower()
-    data = uploaded_file.read().decode("utf-8", errors="ignore")
+def parse_file(file):
+    name = file.name.lower()
+    content = file.read().decode("utf-8", errors="ignore")
 
-    records = []
+    # RIS
+    if name.endswith(".ris"):
+        return rispy.loads(content)
+
+    # NBIB (PubMed)
+    if name.endswith(".nbib"):
+        records = []
+        entry = {}
+        for line in content.splitlines():
+            if line.strip() == "":
+                if entry:
+                    records.append(entry)
+                    entry = {}
+            elif line.startswith("TI"):
+                entry["title"] = line[6:].strip()
+            elif line.startswith("AU"):
+                entry.setdefault("authors", []).append(line[6:].strip())
+        if entry:
+            records.append(entry)
+        return records
 
     # BibTeX
     if name.endswith(".bib"):
-        bib_db = bibtexparser.loads(data)
-        records = bib_db.entries
+        return bibtexparser.loads(content).entries
 
-    # RIS or NBIB
-    elif name.endswith(".ris") or name.endswith(".nbib") or name.endswith(".txt"):
-        for ref in data.strip().split("\n\n"):
-            entry = {}
-            for line in ref.split("\n"):
-                if "  - " in line:
-                    key, val = line.split("  - ", 1)
-                    entry[key.strip()] = val.strip()
-            if entry:
-                records.append(entry)
+    # EndNote XML
+    if name.endswith(".xml"):
+        records = []
+        try:
+            tree = ET.ElementTree(ET.fromstring(content))
+            for rec in tree.findall(".//record"):
+                title = rec.findtext("titles/title/style")
+                authors = [a.text for a in rec.findall("contributors/authors/author")]
+                records.append({"title": title, "authors": authors})
+        except Exception:
+            pass
+        return records
 
     # CSV
-    elif name.endswith(".csv"):
-        reader = csv.DictReader(StringIO(data))
-        records = list(reader)
+    if name.endswith(".csv"):
+        reader = csv.DictReader(io.StringIO(content))
+        return [row for row in reader]
 
-    else:
-        raise ValueError("Unsupported file type. Please upload .bib, .ris, .nbib, .csv, or .txt")
+    # TXT (fallback)
+    if name.endswith(".txt"):
+        return [{"title": line.strip()} for line in content.splitlines() if line.strip()]
 
-    return records
+    return []
 
-
-# ---------- Deduplication ----------
 def similar(a, b):
     return SequenceMatcher(None, a.lower(), b.lower()).ratio()
 
-def deduplicate(records, threshold=0.85):
-    unique = []
+def deduplicate(records, threshold=0.9):
+    seen = []
     duplicates = []
+
     for rec in records:
-        title = rec.get("title", rec.get("TI", ""))  # RIS uses TI for title
+        title = rec.get("title", "").strip()
         if not title:
-            unique.append(rec)
             continue
 
-        if any(similar(title, u.get("title", u.get("TI", ""))) >= threshold for u in unique):
-            duplicates.append(rec)
-        else:
-            unique.append(rec)
-    return unique, duplicates
+        matched = False
+        for s in seen:
+            if similar(title, s.get("title", "")) >= threshold:
+                duplicates.append(rec)
+                matched = True
+                break
+        if not matched:
+            seen.append(rec)
 
+    return seen, duplicates
 
-# ---------- Exporting ----------
-def export_references(records, fmt="csv"):
-    if not records:
-        return ""
+def export_references(records, fmt):
+    if fmt == "csv":
+        all_fields = set()
+        for r in records:
+            all_fields.update(r.keys())
+        fieldnames = sorted(list(all_fields))
 
-    if fmt == "json":
-        return json.dumps(records, indent=2)
-
-    elif fmt == "csv":
-        output = StringIO()
-        writer = csv.DictWriter(output, fieldnames=records[0].keys())
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
-        writer.writerows(records)
-        return output.getvalue()
-
-    elif fmt == "bib":
-        db = bibtexparser.bibdatabase.BibDatabase()
-        db.entries = records
-        return bibtexparser.dumps(db)
+        for r in records:
+            row = {key: r.get(key, "") for key in fieldnames}
+            writer.writerow(row)
+        return output.getvalue().encode("utf-8")
 
     elif fmt == "ris":
-        output = []
-        for rec in records:
-            for k, v in rec.items():
-                output.append(f"{k}  - {v}")
-            output.append("")  # blank line between refs
-        return "\n".join(output)
+        return "\n".join([f"TY  - JOUR\nTI  - {r.get('title','')}\nER  -" for r in records]).encode("utf-8")
 
-    else:
-        return str(records)
+    elif fmt == "bib":
+        return "\n".join([f"@article{{{i},\n  title={{ {r.get('title','')} }}\n}}" for i, r in enumerate(records)]).encode("utf-8")
+
+    elif fmt == "nbib":
+        return "\n".join([f"TI  - {r.get('title','')}" for r in records]).encode("utf-8")
+
+    else:  # JSON
+        return json.dumps(records, indent=2).encode("utf-8")
