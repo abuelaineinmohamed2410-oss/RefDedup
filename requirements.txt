@@ -1,3 +1,4 @@
 streamlit
-rapidfuzz
+rispy
+bibtexparser
 pandas
