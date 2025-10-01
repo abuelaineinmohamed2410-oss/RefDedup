@@ -1,5 +1,5 @@
 import streamlit as st
-from dedup import process_uploaded_files, record_to_ris  # Correct import
+from dedup import process_uploaded_files, record_to_ris  # Import from dedup.py
 
 # ---------------- Page Config ---------------- #
 st.set_page_config(
@@ -65,23 +65,35 @@ if uploaded_files:
     st.info("Processing files... This may take a few seconds.")
 
     try:
-        cleaned_records, total_before, total_after = process_uploaded_files(uploaded_files, title_threshold=90)
+        cleaned_records, duplicate_records, total_before, total_after = process_uploaded_files(
+            uploaded_files, title_threshold=90
+        )
 
-        # Generate cleaned RIS content
+        # Generate RIS contents
         cleaned_content = "\n\n".join([record_to_ris(rec) for rec in cleaned_records])
+        duplicate_content = "\n\n".join([record_to_ris(rec) for rec in duplicate_records])
 
         # Show results
         st.success("Processing complete!")
         st.write(f"**Total records before deduplication:** {total_before}")
         st.write(f"**Total records after deduplication:** {total_after}")
+        st.write(f"**Duplicates found:** {len(duplicate_records)}")
 
-        # Download button
+        # Download buttons
         st.download_button(
             label="Download Cleaned RIS File",
             data=cleaned_content,
             file_name="cleaned_references.ris",
             mime="text/plain"
         )
+
+        if duplicate_records:
+            st.download_button(
+                label="Download Duplicate RIS File",
+                data=duplicate_content,
+                file_name="duplicates.ris",
+                mime="text/plain"
+            )
 
     except Exception as e:
         st.error(f"An error occurred during processing: {e}")
