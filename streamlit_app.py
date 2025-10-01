@@ -3,52 +3,55 @@ from dedup import parse_file, deduplicate, export_references
 
 st.set_page_config(page_title="Reference Deduplicator", layout="wide")
 
-st.title("📚 Reference Deduplicator")
-st.write("Upload your reference files (.bib, .ris, .nbib, .csv, .txt). The app will merge them, remove duplicates, and allow you to export results.")
+st.title("Reference Deduplicator")
+st.markdown("Upload your exported reference files (RIS, NBIB, BibTeX, EndNote XML, CSV, TXT).")
 
 uploaded_files = st.file_uploader(
     "Upload one or more files", 
-    type=["bib", "ris", "nbib", "csv", "txt"], 
+    type=["ris", "nbib", "bib", "xml", "csv", "txt"],
     accept_multiple_files=True
 )
 
-# Threshold with recommendation
-threshold = st.slider("Deduplication similarity threshold", 0.5, 1.0, 0.85)
-st.caption("🔹 Recommended: 0.85 (strict), 0.75 (balanced), 0.65 (loose)")
+threshold = st.slider("Similarity threshold (%)", 70, 100, 90)
+st.caption("Recommended: 90% (balanced). Lower = more aggressive, higher = stricter.")
 
 if uploaded_files:
-    records = []
-    for f in uploaded_files:
+    all_records = []
+    for file in uploaded_files:
         try:
-            records.extend(parse_file(f))
+            records = parse_file(file)
+            all_records.extend(records)
         except Exception as e:
-            st.error(f"Could not parse {f.name}: {e}")
+            st.error(f"Could not parse {file.name}: {e}")
 
-    if not records:
-        st.warning("No records found.")
-    else:
-        unique, duplicates = deduplicate(records, threshold)
+    if all_records:
+        unique, duplicates = deduplicate(all_records, threshold / 100.0)
 
-        st.success(f"✅ Found {len(unique)} unique references and {len(duplicates)} duplicates across {len(uploaded_files)} files.")
-
-        # Preview unique references
         st.subheader("Unique References (Cleaned Preview)")
-        for r in unique[:5]:
-            st.text(f"- {r.get('title') or r.get('TI') or 'No title'}")
+        for r in unique[:10]:
+            st.write("- " + r.get("title", "Untitled"))
+        if len(unique) > 10:
+            st.write(f"... and {len(unique) - 10} more")
 
         st.subheader("Duplicate References (Preview)")
-        for r in duplicates[:5]:
-            st.text(f"- {r.get('title') or r.get('TI') or 'No title'}")
+        for r in duplicates[:10]:
+            st.write("- " + r.get("title", "Untitled"))
+        if len(duplicates) > 10:
+            st.write(f"... and {len(duplicates) - 10} more")
 
-        # Export options
-        fmt = st.selectbox("Export format", ["csv", "bib", "ris", "json"])
+        fmt = st.selectbox("Export format", ["csv", "ris", "bib", "nbib", "json"])
 
-        col1, col2 = st.columns(2)
+        if st.button("Export Cleaned & Duplicates"):
+            cleaned_bytes = export_references(unique, fmt)
+            dups_bytes = export_references(duplicates, fmt)
 
-        with col1:
-            cleaned = export_references(unique, fmt)
-            st.download_button("⬇️ Download Cleaned References", cleaned, f"cleaned.{fmt}")
-
-        with col2:
-            dups = export_references(duplicates, fmt)
-            st.download_button("⬇️ Download Duplicate References", dups, f"duplicates.{fmt}")
+            st.download_button(
+                "Download Unique References",
+                cleaned_bytes,
+                file_name=f"unique_references.{fmt}"
+            )
+            st.download_button(
+                "Download Duplicate References",
+                dups_bytes,
+                file_name=f"duplicate_references.{fmt}"
+            )
