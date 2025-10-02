@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import rispy
-import bibtexparser
 from rapidfuzz import fuzz
 import io
 
@@ -10,32 +9,48 @@ import io
 # -------------------
 
 def load_ris(file):
+    """Load RIS file and return as DataFrame."""
     entries = rispy.load(file)
     return pd.DataFrame(entries)
 
-def load_csv(file):
-    return pd.read_csv(file)
-
-def load_bib(file):
+def load_nbib(file):
+    """Parse NBIB file manually and return as DataFrame."""
     content = file.read().decode("utf-8", errors="ignore")
-    bib_db = bibtexparser.loads(content)
-    records = []
-    for entry in bib_db.entries:
-        records.append({
-            "title": entry.get("title", ""),
-            "author": entry.get("author", ""),
-            "year": entry.get("year", ""),
-        })
+    records, entry = [], {}
+
+    for line in content.splitlines():
+        if line.strip() == "":
+            if entry:
+                records.append(entry)
+                entry = {}
+        elif line.startswith("TI"):
+            entry["title"] = line[6:].strip()
+        elif line.startswith("AU"):
+            entry.setdefault("author", []).append(line[6:].strip())
+        elif line.startswith("DP") or line.startswith("YR"):
+            entry["year"] = line[6:].strip()
+
+    if entry:
+        records.append(entry)
+
+    # Flatten authors into string
+    for r in records:
+        if isinstance(r.get("author"), list):
+            r["author"] = "; ".join(r["author"])
     return pd.DataFrame(records)
 
-def deduplicate(df, threshold=85):
-    unique = []
-    duplicates = []
+def deduplicate(df, threshold=90):
+    """Fuzzy title matching for deduplication."""
+    unique, duplicates = [], []
 
     for _, row in df.iterrows():
+        title = str(row.get("title", ""))
+        if not title:
+            continue
+
         is_dup = False
         for u in unique:
-            score = fuzz.ratio(str(row['title']), str(u['title']))
+            score = fuzz.token_sort_ratio(title, str(u["title"]))
             if score >= threshold:
                 duplicates.append(row)
                 is_dup = True
@@ -43,84 +58,60 @@ def deduplicate(df, threshold=85):
         if not is_dup:
             unique.append(row)
 
-    cleaned = pd.DataFrame(unique)
-    duplicates = pd.DataFrame(duplicates)
-    return cleaned, duplicates
+    return pd.DataFrame(unique), pd.DataFrame(duplicates)
 
-def export_file(df, fmt="csv"):
+def export_ris(df):
+    """Convert DataFrame to RIS format string."""
     buf = io.StringIO()
-    if fmt == "csv":
-        df.to_csv(buf, index=False)
-    elif fmt == "ris":
-        for _, row in df.iterrows():
-            buf.write("TY  - JOUR\n")
-            buf.write(f"TI  - {row.get('title','')}\n")
-            buf.write(f"AU  - {row.get('author','')}\n")
-            buf.write(f"PY  - {row.get('year','')}\n")
-            buf.write("ER  -\n\n")
-    elif fmt == "bib":
-        for i, row in df.iterrows():
-            buf.write(f"@article{{ref{i},\n")
-            buf.write(f"  title={{ {row.get('title','')} }},\n")
-            buf.write(f"  author={{ {row.get('author','')} }},\n")
-            buf.write(f"  year={{ {row.get('year','')} }}\n")
-            buf.write("}\n\n")
-    return buf.getvalue()
+    for _, row in df.iterrows():
+        buf.write("TY  - JOUR\n")
+        buf.write(f"TI  - {row.get('title','')}\n")
+        buf.write(f"AU  - {row.get('author','')}\n")
+        buf.write(f"PY  - {row.get('year','')}\n")
+        buf.write("ER  -\n\n")
+    return buf.getvalue().encode("utf-8")
 
 # -------------------
 # Streamlit UI
 # -------------------
 
-st.title("📚 Reference Deduplication Tool")
-st.write("Upload your reference files, set a deduplication threshold, and export cleaned + duplicates.")
+st.title("Reference Deduplication Tool")
+st.write("Upload your `.nbib` or `.ris` file. The tool will remove duplicates (based on title similarity) and provide two RIS files: one cleansed set and one containing duplicates.")
 
-uploaded_file = st.file_uploader(
-    "Upload Reference File (RIS, BibTeX, CSV)", 
-    type=["ris", "bib", "csv", "txt"]
-)
+uploaded_file = st.file_uploader("Upload File", type=["nbib", "ris"])
 
-threshold = st.slider("Deduplication Threshold (%)", 70, 100, 85)
+threshold = st.slider("Deduplication Threshold (%)", 70, 100, 90)
 
 if uploaded_file:
     ext = uploaded_file.name.split(".")[-1].lower()
 
     if ext == "ris":
         df = load_ris(uploaded_file)
-    elif ext == "csv":
-        df = load_csv(uploaded_file)
-    elif ext == "bib":
-        df = load_bib(uploaded_file)
+    elif ext == "nbib":
+        df = load_nbib(uploaded_file)
     else:
-        st.error("Unsupported file format yet.")
         df = None
+        st.error("Unsupported file format.")
 
     if df is not None and not df.empty:
         st.success(f"Loaded {len(df)} references.")
 
         cleaned, duplicates = deduplicate(df, threshold)
 
-        st.subheader("Preview of Cleaned References")
-        st.dataframe(cleaned.head(20))
+        st.write(f"✅ {len(cleaned)} unique references")
+        st.write(f"⚠️ {len(duplicates)} duplicates found")
 
-        # Export options
-        st.subheader("Download Results")
+        # Downloads
+        st.download_button(
+            "Download Cleaned References (RIS)",
+            data=export_ris(cleaned),
+            file_name="cleaned.ris",
+            mime="application/x-research-info-systems"
+        )
 
-        col1, col2 = st.columns(2)
-
-        with col1:
-            fmt = st.selectbox("Export Format for Cleaned", ["csv", "ris", "bib"])
-            st.download_button(
-                "Download Cleaned References",
-                data=export_file(cleaned, fmt),
-                file_name=f"cleaned.{fmt}",
-                mime="text/plain"
-            )
-
-        with col2:
-            fmt2 = st.selectbox("Export Format for Duplicates", ["csv", "ris", "bib"])
-            st.download_button(
-                "Download Duplicate References",
-                data=export_file(duplicates, fmt2),
-                file_name=f"duplicates.{fmt2}",
-                mime="text/plain"
-            )
+        st.download_button(
+            "Download Duplicate References (RIS)",
+            data=export_ris(duplicates),
+            file_name="duplicates.ris",
+            mime="application/x-research-info-systems"
+        )
