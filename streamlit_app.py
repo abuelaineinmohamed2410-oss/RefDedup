@@ -1,12 +1,108 @@
 import streamlit as st
-from depup import process_uploaded_files, record_to_ris
+
+# ---------------- Import dedup module ---------------- #
+# Try importing depup.py or dedup.py depending on your repo
+try:
+    from depup import process_uploaded_files, record_to_ris
+except ModuleNotFoundError:
+    from dedup import process_uploaded_files, record_to_ris
 
 # ---------------- Page Config ---------------- #
 st.set_page_config(
-    page_title="RefDedup - Duplicate Checker",
-    page_icon="logo.png",  # Ensure logo.png is in repo root
+    page_title="RefDedup - Duplicate Checker Removal",
+    page_icon="logo.png",  # Your logo file in repo root
     layout="centered"
 )
+
+# ---------------- Custom CSS ---------------- #
+st.markdown(
+    """
+    <style>
+    /* Page background */
+    .stApp {
+        background-color: white;
+    }
+    /* Header rectangle */
+    .header-box {
+        background-color: #0B3D91;  /* Dark blue */
+        padding: 25px;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    /* Header main text */
+    .header-box h1 {
+        color: white;
+        margin: 0;
+        font-size: 32px;
+    }
+    /* Header subtext */
+    .header-box h4 {
+        color: white;
+        margin: 5px 0 0 0;
+        font-weight: normal;
+    }
+    /* Other text */
+    .stText, .stMarkdown {
+        color: black;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# ---------------- Header ---------------- #
+st.markdown(
+    """
+    <div class="header-box">
+        <h1>RefDedup - Duplicate Checker Removal</h1>
+        <h4>Developed by Mohamed Abu Elainein</h4>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# ---------------- Description ---------------- #
+st.write(
+    "Upload your **RIS** or **NBIB** files below to remove duplicates "
+    "based on **Title, DOI, PMID, and Authors**."
+)
+
+# ---------------- File Uploader ---------------- #
+uploaded_files = st.file_uploader(
+    "Upload RIS/NBIB files",
+    type=["ris", "nbib"],
+    accept_multiple_files=True
+)
+
+# ---------------- Processing ---------------- #
+if uploaded_files:
+    st.info("Processing files... This may take a few seconds.")
+
+    try:
+        # Call the processing function from depup/dedup
+        cleaned_records, total_before, total_after = process_uploaded_files(
+            uploaded_files, title_threshold=90
+        )
+
+        # Generate cleaned RIS content
+        cleaned_content = "\n\n".join([record_to_ris(rec) for rec in cleaned_records])
+
+        # Show results
+        st.success("Processing complete!")
+        st.write(f"**Total records before deduplication:** {total_before}")
+        st.write(f"**Total records after deduplication:** {total_after}")
+
+        # Download button
+        st.download_button(
+            label="Download Cleaned RIS File",
+            data=cleaned_content,
+            file_name="cleaned_references.ris",
+            mime="text/plain"
+        )
+
+    except Exception as e:
+        st.error(f"An error occurred during processing: {e}")
 
 # ---------------- Sidebar ---------------- #
 st.sidebar.header("About RefDedup")
@@ -19,37 +115,3 @@ st.sidebar.write(
     based on **Title, DOI, PMID, and Authors**.
     """
 )
-
-# ---------------- Main Page ---------------- #
-st.markdown("<h1 style='text-align: center; color: #0F4C81;'>RefDedup - Duplicate Checker Removal</h1>", unsafe_allow_html=True)
-st.write("Upload your RIS or NBIB files below to remove duplicates based on title, DOI, PMID, and authors.")
-
-# File uploader
-uploaded_files = st.file_uploader(
-    "Upload RIS/NBIB files", 
-    type=["ris", "nbib"], 
-    accept_multiple_files=True
-)
-
-# Start processing
-if uploaded_files:
-    st.info("Processing files... Please wait.")
-    try:
-        cleaned_records, total_before, total_after = process_uploaded_files(uploaded_files, title_threshold=90)
-        cleaned_content = "\n\n".join([record_to_ris(rec) for rec in cleaned_records])
-
-        # Display results
-        st.success("Processing complete!")
-        st.markdown(f"**Total records before deduplication:** {total_before}")
-        st.markdown(f"**Total records after deduplication:** {total_after}")
-
-        # Download button
-        st.download_button(
-            label="Download Cleaned RIS File",
-            data=cleaned_content,
-            file_name="cleaned_references.ris",
-            mime="text/plain"
-        )
-
-    except Exception as e:
-        st.error(f"An error occurred during processing: {e}")
