@@ -1,117 +1,145 @@
-import streamlit as st
+import re
+from rapidfuzz import fuzz
 
-# ---------------- Import dedup module ---------------- #
-# Try importing depup.py or dedup.py depending on your repo
-try:
-    from depup import process_uploaded_files, record_to_ris
-except ModuleNotFoundError:
-    from dedup import process_uploaded_files, record_to_ris
+# ---------------- Parsing Functions ---------------- #
+def parse_nbib_from_string(content):
+    records = []
+    record = {}
+    last_tag = None
+    for line in content.splitlines():
+        line = line.strip()
+        if not line:
+            if record:
+                records.append(record)
+                record = {}
+            last_tag = None
+            continue
+        match = re.match(r"^([A-Z0-9]+)\s*-\s*(.*)$", line)
+        if match:
+            tag, value = match.groups()
+            if tag in record:
+                if isinstance(record[tag], list):
+                    record[tag].append(value)
+                else:
+                    record[tag] = [record[tag], value]
+            else:
+                record[tag] = value
+            last_tag = tag
+        else:
+            if last_tag:
+                if last_tag not in record:
+                    record[last_tag] = line
+                elif isinstance(record[last_tag], list):
+                    record[last_tag][-1] += " " + line
+                else:
+                    record[last_tag] += " " + line
+    if record:
+        records.append(record)
+    return records
 
-# ---------------- Page Config ---------------- #
-st.set_page_config(
-    page_title="RefDedup - Duplicate Checker Removal",
-    page_icon="logo.png",  # Your logo file in repo root
-    layout="centered"
-)
+def parse_ris_from_string(content):
+    records = []
+    record = {}
+    last_tag = None
+    pattern = r"^([A-Z0-9]{2})  - (.*)$"
+    for line in content.splitlines():
+        line = line.strip()
+        if line == "ER  -":
+            if record:
+                records.append(record)
+                record = {}
+            last_tag = None
+            continue
+        match = re.match(pattern, line)
+        if match:
+            tag, value = match.groups()
+            if tag in record:
+                if isinstance(record[tag], list):
+                    record[tag].append(value)
+                else:
+                    record[tag] = [record[tag], value]
+            else:
+                record[tag] = value
+            last_tag = tag
+        else:
+            if last_tag:
+                if last_tag not in record:
+                    record[last_tag] = line
+                elif isinstance(record[last_tag], list):
+                    record[last_tag][-1] += " " + line
+                else:
+                    record[last_tag] += " " + line
+    if record:
+        records.append(record)
+    return records
 
-# ---------------- Custom CSS ---------------- #
-st.markdown(
-    """
-    <style>
-    /* Page background */
-    .stApp {
-        background-color: white;
-    }
-    /* Header rectangle */
-    .header-box {
-        background-color: #0B3D91;  /* Dark blue */
-        padding: 25px;
-        border-radius: 10px;
-        text-align: center;
-        margin-bottom: 20px;
-    }
-    /* Header main text */
-    .header-box h1 {
-        color: white;
-        margin: 0;
-        font-size: 32px;
-    }
-    /* Header subtext */
-    .header-box h4 {
-        color: white;
-        margin: 5px 0 0 0;
-        font-weight: normal;
-    }
-    /* Other text */
-    .stText, .stMarkdown {
-        color: black;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# ---------------- RIS Export ---------------- #
+def record_to_ris(record):
+    ris_lines = ["TY  - JOUR"]
+    for tag in record:
+        value = record[tag]
+        if isinstance(value, list):
+            for v in value:
+                ris_lines.append(f"{tag}  - {v}")
+        else:
+            ris_lines.append(f"{tag}  - {value}")
+    ris_lines.append("ER  -")
+    return "\n".join(ris_lines)
 
-# ---------------- Header ---------------- #
-st.markdown(
-    """
-    <div class="header-box">
-        <h1>RefDedup - Duplicate Checker Removal</h1>
-        <h4>Developed by Mohamed Abu Elainein</h4>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+# ---------------- Duplicate Removal ---------------- #
+def remove_duplicates(records, title_threshold=90):
+    cleaned = []
+    seen_titles = []
+    seen_ids = set()  # for PMID or DOI
 
-# ---------------- Description ---------------- #
-st.write(
-    "Upload your **RIS** or **NBIB** files below to remove duplicates "
-    "based on **Title, DOI, PMID, and Authors**."
-)
+    for rec in records:
+        pmid = rec.get("PMID", "")
+        doi = rec.get("LID", "")
+        title = rec.get("TI", "")
 
-# ---------------- File Uploader ---------------- #
-uploaded_files = st.file_uploader(
-    "Upload RIS/NBIB files",
-    type=["ris", "nbib"],
-    accept_multiple_files=True
-)
+        if isinstance(title, list):
+            title = " ".join(title)
+        if isinstance(doi, list):
+            doi = doi[0]
+        if isinstance(pmid, list):
+            pmid = pmid[0]
 
-# ---------------- Processing ---------------- #
-if uploaded_files:
-    st.info("Processing files... This may take a few seconds.")
+        duplicate = False
+        if pmid in seen_ids or doi in seen_ids:
+            duplicate = True
+        else:
+            for t in seen_titles:
+                if fuzz.ratio(title.lower(), t.lower()) >= title_threshold:
+                    duplicate = True
+                    break
 
-    try:
-        # Call the processing function from depup/dedup
-        cleaned_records, total_before, total_after = process_uploaded_files(
-            uploaded_files, title_threshold=90
-        )
+        if not duplicate:
+            cleaned.append(rec)
+            seen_titles.append(title)
+            if pmid:
+                seen_ids.add(pmid)
+            if doi:
+                seen_ids.add(doi)
 
-        # Generate cleaned RIS content
-        cleaned_content = "\n\n".join([record_to_ris(rec) for rec in cleaned_records])
+    return cleaned
 
-        # Show results
-        st.success("Processing complete!")
-        st.write(f"**Total records before deduplication:** {total_before}")
-        st.write(f"**Total records after deduplication:** {total_after}")
+# ---------------- Streamlit-upload compatible ---------------- #
+def process_uploaded_files(uploaded_files, title_threshold=90):
+    all_records = []
 
-        # Download button
-        st.download_button(
-            label="Download Cleaned RIS File",
-            data=cleaned_content,
-            file_name="cleaned_references.ris",
-            mime="text/plain"
-        )
+    for uploaded_file in uploaded_files:
+        file_name = uploaded_file.name.lower()
+        content = uploaded_file.getvalue().decode("utf-8")
 
-    except Exception as e:
-        st.error(f"An error occurred during processing: {e}")
+        if file_name.endswith(".nbib"):
+            records = parse_nbib_from_string(content)
+        elif file_name.endswith(".ris"):
+            records = parse_ris_from_string(content)
+        else:
+            continue
+        all_records.extend(records)
 
-# ---------------- Sidebar ---------------- #
-st.sidebar.header("About RefDedup")
-st.sidebar.write(
-    """
-    **RefDedup**  
-    Developed by **Mohamed Abu Elainein**  
-
-    Remove duplicate references from **RIS** and **NBIB** files  
-    based on **Title, DOI, PMID, and Authors**.
-    """
-)
+    total_before = len(all_records)
+    cleaned_records = remove_duplicates(all_records, title_threshold=title_threshold)
+    total_after = len(cleaned_records)
+    return cleaned_records, total_before, total_after
