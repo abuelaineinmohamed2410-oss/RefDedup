@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import rispy
-from pybtex.database import parse_file
+import bibtexparser
 from rapidfuzz import fuzz
 import io
 
@@ -17,13 +17,14 @@ def load_csv(file):
     return pd.read_csv(file)
 
 def load_bib(file):
-    bib_data = parse_file(file, bib_format="bibtex")
+    content = file.read().decode("utf-8", errors="ignore")
+    bib_db = bibtexparser.loads(content)
     records = []
-    for entry_key, entry in bib_data.entries.items():
+    for entry in bib_db.entries:
         records.append({
-            "title": entry.fields.get("title", ""),
-            "author": " & ".join([str(p) for p in entry.persons.get("author", [])]),
-            "year": entry.fields.get("year", ""),
+            "title": entry.get("title", ""),
+            "author": entry.get("author", ""),
+            "year": entry.get("year", ""),
         })
     return pd.DataFrame(records)
 
@@ -31,7 +32,7 @@ def deduplicate(df, threshold=85):
     unique = []
     duplicates = []
 
-    for i, row in df.iterrows():
+    for _, row in df.iterrows():
         is_dup = False
         for u in unique:
             score = fuzz.ratio(str(row['title']), str(u['title']))
@@ -73,7 +74,10 @@ def export_file(df, fmt="csv"):
 st.title("📚 Reference Deduplication Tool")
 st.write("Upload your reference files, set a deduplication threshold, and export cleaned + duplicates.")
 
-uploaded_file = st.file_uploader("Upload Reference File (RIS, BibTeX, CSV)", type=["ris", "bib", "csv", "txt", "xml"])
+uploaded_file = st.file_uploader(
+    "Upload Reference File (RIS, BibTeX, CSV)", 
+    type=["ris", "bib", "csv", "txt"]
+)
 
 threshold = st.slider("Deduplication Threshold (%)", 70, 100, 85)
 
@@ -90,7 +94,7 @@ if uploaded_file:
         st.error("Unsupported file format yet.")
         df = None
 
-    if df is not None:
+    if df is not None and not df.empty:
         st.success(f"Loaded {len(df)} references.")
 
         cleaned, duplicates = deduplicate(df, threshold)
