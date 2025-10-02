@@ -1,10 +1,10 @@
 import streamlit as st
-from depup import process_uploaded_files, record_to_ris
+from dedup import process_uploaded_files, record_to_ris  # Fixed import
 
 # ---------------- Page Config ---------------- #
 st.set_page_config(
-    page_title="RefDedup - Duplicate Checker",
-    page_icon="logo.png",  # Ensure logo.png is in repo root
+    page_title="RefDedup - Duplicate Checker Removal",
+    page_icon="logo.png",  # Your professional logo in repo root
     layout="centered"
 )
 
@@ -21,8 +21,8 @@ st.sidebar.write(
 )
 
 # ---------------- Main Page ---------------- #
-st.markdown("<h1 style='text-align: center; color: #0F4C81;'>RefDedup - Duplicate Checker Removal</h1>", unsafe_allow_html=True)
-st.write("Upload your RIS or NBIB files below to remove duplicates based on title, DOI, PMID, and authors.")
+st.title("RefDedup - Duplicate Checker Removal")
+st.write("Upload your RIS or NBIB files below to remove duplicates.")
 
 # File uploader
 uploaded_files = st.file_uploader(
@@ -33,17 +33,19 @@ uploaded_files = st.file_uploader(
 
 # Start processing
 if uploaded_files:
-    st.info("Processing files... Please wait.")
+    st.info("Processing files... This may take a few seconds.")
+
     try:
         cleaned_records, total_before, total_after = process_uploaded_files(uploaded_files, title_threshold=90)
+
+        # Generate cleaned RIS content
         cleaned_content = "\n\n".join([record_to_ris(rec) for rec in cleaned_records])
 
-        # Display results
+        # Download link
         st.success("Processing complete!")
-        st.markdown(f"**Total records before deduplication:** {total_before}")
-        st.markdown(f"**Total records after deduplication:** {total_after}")
+        st.write(f"**Total records before deduplication:** {total_before}")
+        st.write(f"**Total records after deduplication:** {total_after}")
 
-        # Download button
         st.download_button(
             label="Download Cleaned RIS File",
             data=cleaned_content,
