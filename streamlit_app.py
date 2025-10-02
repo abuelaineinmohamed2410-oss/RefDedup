@@ -1,130 +1,55 @@
 import streamlit as st
-import pandas as pd
-import rispy
-from rapidfuzz import fuzz
-import io
+from depup import process_uploaded_files, record_to_ris
 
-# -------------------
-# Utility Functions
-# -------------------
+# ---------------- Page Config ---------------- #
+st.set_page_config(
+    page_title="RefDedup - Duplicate Checker",
+    page_icon="logo.png",  # Ensure logo.png is in repo root
+    layout="centered"
+)
 
-def load_ris(file):
-    """Load RIS file and return as DataFrame."""
-    content = file.read().decode("utf-8", errors="ignore")
-    entries = rispy.loads(content)
-    return pd.DataFrame(entries)
+# ---------------- Sidebar ---------------- #
+st.sidebar.header("About RefDedup")
+st.sidebar.write(
+    """
+    **RefDedup**  
+    Developed by **Mohamed Abu Elainein**  
 
-def load_nbib(file):
-    """Parse NBIB file manually and return as DataFrame."""
-    content = file.read().decode("utf-8", errors="ignore")
-    records, entry = [], {}
+    Remove duplicate references from **RIS** and **NBIB** files  
+    based on **Title, DOI, PMID, and Authors**.
+    """
+)
 
-    for line in content.splitlines():
-        if line.strip() == "":
-            if entry:
-                records.append(entry)
-                entry = {}
-        elif line.startswith("TI"):
-            entry["title"] = line[6:].strip()
-        elif line.startswith("AU"):
-            entry.setdefault("author", []).append(line[6:].strip())
-        elif line.startswith("DP") or line.startswith("YR"):
-            entry["year"] = line[6:].strip()
+# ---------------- Main Page ---------------- #
+st.markdown("<h1 style='text-align: center; color: #0F4C81;'>RefDedup - Duplicate Checker Removal</h1>", unsafe_allow_html=True)
+st.write("Upload your RIS or NBIB files below to remove duplicates based on title, DOI, PMID, and authors.")
 
-    if entry:
-        records.append(entry)
+# File uploader
+uploaded_files = st.file_uploader(
+    "Upload RIS/NBIB files", 
+    type=["ris", "nbib"], 
+    accept_multiple_files=True
+)
 
-    # Flatten authors into string
-    for r in records:
-        if isinstance(r.get("author"), list):
-            r["author"] = "; ".join(r["author"])
-    return pd.DataFrame(records)
-
-def deduplicate(df, threshold=90):
-    """Fuzzy title matching for deduplication."""
-    unique, duplicates = [], []
-
-    for _, row in df.iterrows():
-        title = str(row.get("title", ""))
-        if not title:
-            continue
-
-        is_dup = False
-        for u in unique:
-            score = fuzz.token_sort_ratio(title, str(u["title"]))
-            if score >= threshold:
-                duplicates.append(row)
-                is_dup = True
-                break
-        if not is_dup:
-            unique.append(row)
-
-    return pd.DataFrame(unique), pd.DataFrame(duplicates)
-
-def export_ris(df):
-    """Convert DataFrame to RIS format string."""
-    buf = io.StringIO()
-    for _, row in df.iterrows():
-        buf.write("TY  - JOUR\n")
-        buf.write(f"TI  - {row.get('title','')}\n")
-        buf.write(f"AU  - {row.get('author','')}\n")
-        buf.write(f"PY  - {row.get('year','')}\n")
-        buf.write("ER  -\n\n")
-    return buf.getvalue().encode("utf-8")
-
-# -------------------
-# Streamlit UI
-# -------------------
-
-st.title("Reference Deduplication Tool")
-st.write("Upload multiple `.nbib` and `.ris` files. The tool merges all references, removes duplicates, and generates two RIS files: one cleaned set and one duplicates set.")
-
-uploaded_files = st.file_uploader("Upload Files", type=["nbib", "ris"], accept_multiple_files=True)
-
-threshold = st.slider("Deduplication Threshold (%)", 70, 100, 90)
-
+# Start processing
 if uploaded_files:
-    all_refs = []
+    st.info("Processing files... Please wait.")
+    try:
+        cleaned_records, total_before, total_after = process_uploaded_files(uploaded_files, title_threshold=90)
+        cleaned_content = "\n\n".join([record_to_ris(rec) for rec in cleaned_records])
 
-    for file in uploaded_files:
-        ext = file.name.split(".")[-1].lower()
-        if ext == "ris":
-            df = load_ris(file)
-        elif ext == "nbib":
-            df = load_nbib(file)
-        else:
-            df = None
-            st.error(f"Unsupported file format: {file.name}")
-        if df is not None and not df.empty:
-            all_refs.append(df)
+        # Display results
+        st.success("Processing complete!")
+        st.markdown(f"**Total records before deduplication:** {total_before}")
+        st.markdown(f"**Total records after deduplication:** {total_after}")
 
-    if all_refs:
-        df = pd.concat(all_refs, ignore_index=True)
-        st.success(f"Loaded {len(df)} references from {len(uploaded_files)} file(s).")
-
-        cleaned, duplicates = deduplicate(df, threshold)
-
-        st.write(f"✅ {len(cleaned)} unique references")
-        st.write(f"⚠️ {len(duplicates)} duplicates found")
-
-        # Preview tables
-        st.subheader("Preview - Cleaned References")
-        st.dataframe(cleaned.head(15))
-
-        st.subheader("Preview - Duplicates")
-        st.dataframe(duplicates.head(15))
-
-        # Downloads
+        # Download button
         st.download_button(
-            "Download Cleaned References (RIS)",
-            data=export_ris(cleaned),
-            file_name="cleaned.ris",
-            mime="application/x-research-info-systems"
+            label="Download Cleaned RIS File",
+            data=cleaned_content,
+            file_name="cleaned_references.ris",
+            mime="text/plain"
         )
 
-        st.download_button(
-            "Download Duplicate References (RIS)",
-            data=export_ris(duplicates),
-            file_name="duplicates.ris",
-            mime="application/x-research-info-systems"
-        )
+    except Exception as e:
+        st.error(f"An error occurred during processing: {e}")
