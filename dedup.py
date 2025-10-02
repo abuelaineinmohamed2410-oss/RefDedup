@@ -123,7 +123,7 @@ def remove_duplicates(records, title_threshold=90):
 
     return cleaned
 
-# ---------------- Streamlit-upload compatible ---------------- #
+# ---------------- Streamlit Upload Compatible ---------------- #
 def process_uploaded_files(uploaded_files, title_threshold=90):
     all_records = []
 
