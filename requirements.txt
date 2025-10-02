@@ -1,6 +1,5 @@
 streamlit
 pandas
 rispy
-pybtex
-rapidfuzz
 bibtexparser
+rapidfuzz
