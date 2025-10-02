@@ -1,111 +1,41 @@
 import streamlit as st
-from dedup import process_uploaded_files, record_to_ris  # Import from dedup.py
+from pathlib import Path
+import tempfile
 
-# ---------------- Page Config ---------------- #
+# Import your duplicate detection class (assuming it's in the same directory)
+from bibliographic_duplicate_detector import BibliographicDuplicateDetector
+
 st.set_page_config(
-    page_title="RefDedup - Duplicate Checker Removal",
-    page_icon="logo.png",  # your logo file in repo root
-    layout="centered"
+    page_title="BiblioDedupe - Streamlit",
+    layout="wide",
+    page_icon="📚"
 )
 
-# ---------------- Custom CSS ---------------- #
+st.title("📚 BiblioDedupe: Bibliographic Duplicate Detection")
 st.markdown(
-    """
-    <style>
-    /* Page background */
-    .stApp {
-        background-color: white;
-    }
-    /* Header rectangle */
-    .header-box {
-        background-color: #0B3D91;  /* Dark blue */
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
-    }
-    /* Header text */
-    .header-box h1 {
-        color: white;
-        margin: 0;
-    }
-    .header-box h4 {
-        color: orange;
-        margin: 0;
-    }
-    /* Other texts */
-    .stText, .stMarkdown {
-        color: black;
-    }
-    </style>
-    """, unsafe_allow_html=True
+    "Upload your bibliographic files (RIS, BIB, CSV, NBIB) to detect and remove duplicate references. "
 )
 
-# ---------------- Header ---------------- #
-st.markdown(
-    """
-    <div class="header-box">
-        <h1>RefDedup - Duplicate Checker Removal</h1>
-        <h4>Developed by Mohamed Abu Elainein</h4>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-st.write("Upload your RIS or NBIB files below to remove duplicates based on Title, DOI, PMID, and Authors.")
-
-# ---------------- File Uploader ---------------- #
 uploaded_files = st.file_uploader(
-    "Upload RIS/NBIB files",
-    type=["ris", "nbib"],
-    accept_multiple_files=True
+    "Upload files",
+    type=["ris", "bib", "csv", "nbib", "txt"],
+    accept_multiple_files=True,
+    help="You can upload multiple files from different sources."
 )
 
-# ---------------- Processing ---------------- #
-if uploaded_files:
-    st.info("Processing files... This may take a few seconds.")
-
-    try:
-        cleaned_records, duplicate_records, total_before, total_after = process_uploaded_files(
-            uploaded_files, title_threshold=90
-        )
-
-        # Generate RIS contents
-        cleaned_content = "\n\n".join([record_to_ris(rec) for rec in cleaned_records])
-        duplicate_content = "\n\n".join([record_to_ris(rec) for rec in duplicate_records])
-
-        # Show results
-        st.success("Processing complete!")
-        st.write(f"**Total records before deduplication:** {total_before}")
-        st.write(f"**Total records after deduplication:** {total_after}")
-        st.write(f"**Duplicates found:** {len(duplicate_records)}")
-
-        # Download buttons
-        st.download_button(
-            label="Download Cleaned RIS File",
-            data=cleaned_content,
-            file_name="cleaned_references.ris",
-            mime="text/plain"
-        )
-
-        if duplicate_records:
-            st.download_button(
-                label="Download Duplicate RIS File",
-                data=duplicate_content,
-                file_name="duplicates.ris",
-                mime="text/plain"
-            )
-
-    except Exception as e:
-        st.error(f"An error occurred during processing: {e}")
-
-# ---------------- Sidebar ---------------- #
-st.sidebar.header("About RefDedup")
-st.sidebar.write(
-    """
-    **RefDedup**  
-    Developed by **Mohamed Abu Elainein**  
-
-    Remove duplicate references from **RIS** and **NBIB** files  
-    based on **Title, DOI, PMID, and Authors**.
-    """
+threshold = st.slider(
+    "Title similarity threshold", 0.80, 1.00, 0.95, 0.01,
+    help="Lower threshold detects more duplicates, higher is stricter."
 )
+
+if st.button("Run Duplicate Detection") and uploaded_files:
+    with st.spinner("Processing files..."):
+        # Save uploaded files to temp files for processing
+        file_paths = []
+        for uploaded in uploaded_files:
+            suffix = Path(uploaded.name).suffix
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmpf:
+                tmpf.write(uploaded.read())
+                file_paths.append(tmpf.name)
+
+        # Instantiate and run the detector
