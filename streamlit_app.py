@@ -10,7 +10,8 @@ import io
 
 def load_ris(file):
     """Load RIS file and return as DataFrame."""
-    entries = rispy.load(file)
+    content = file.read().decode("utf-8", errors="ignore")
+    entries = rispy.loads(content)
     return pd.DataFrame(entries)
 
 def load_nbib(file):
@@ -105,6 +106,13 @@ if uploaded_files:
 
         st.write(f"✅ {len(cleaned)} unique references")
         st.write(f"⚠️ {len(duplicates)} duplicates found")
+
+        # Preview tables
+        st.subheader("Preview - Cleaned References")
+        st.dataframe(cleaned.head(15))
+
+        st.subheader("Preview - Duplicates")
+        st.dataframe(duplicates.head(15))
 
         # Downloads
         st.download_button(
