@@ -1,6 +1,6 @@
 streamlit
-rispy
-bibtexparser
 pandas
+rispy
+pybtex
 rapidfuzz
-unidecode
+bibtexparser
