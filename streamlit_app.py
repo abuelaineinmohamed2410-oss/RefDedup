@@ -1,10 +1,10 @@
 import streamlit as st
-from dedup import process_uploaded_files, record_to_ris  # Correct import
+from dedup import process_uploaded_files, record_to_ris  
 
 # ---------------- Page Config ---------------- #
 st.set_page_config(
     page_title="RefDedup - Duplicate Checker Removal",
-    page_icon="logo.png",  # your logo file in repo root
+    page_icon="logo.png",  
     layout="centered"
 )
 
@@ -45,13 +45,13 @@ st.markdown(
     """
     <div class="header-box">
         <h1>RefDedup - Duplicate Checker Removal</h1>
-        <h4>Developed by Mohamed Abu Elainein</h4>
+        <h4>A Pre Release Version</h4>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-st.write("Upload your RIS or NBIB files below to remove duplicates based on Title, DOI, PMID, and Authors.")
+st.write("Upload your RIS or NBIB files below to remove duplicates based on Title, DOI AND PMID.")
 
 # ---------------- File Uploader ---------------- #
 uploaded_files = st.file_uploader(
@@ -94,6 +94,6 @@ st.sidebar.write(
     Developed by **Mohamed Abu Elainein**  
 
     Remove duplicate references from **RIS** and **NBIB** files  
-    based on **Title, DOI, PMID, and Authors**.
+    based on **Title, DOI AND PMID**.
     """
 )
