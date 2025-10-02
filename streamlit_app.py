@@ -1,104 +1,122 @@
 import streamlit as st
 import pandas as pd
+import rispy
+from pybtex.database import parse_file
+from rapidfuzz import fuzz
+import io
 
-# Import dedup functions from dedup.py
-from dedup import process_uploaded_files, record_to_ris
+# -------------------
+# Utility Functions
+# -------------------
 
-# ---------------- Page Config ---------------- #
-st.set_page_config(
-    page_title="RefDedup - Duplicate Checker Removal",
-    page_icon="logo.png",
-    layout="centered"
-)
+def load_ris(file):
+    entries = rispy.load(file)
+    return pd.DataFrame(entries)
 
-# ---------------- Custom CSS ---------------- #
-st.markdown(
-    """
-    <style>
-    .stApp { background-color: white; }
-    .header-box {
-        background-color: #0B3D91;  /* Dark blue */
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
-    }
-    .header-box h1 { color: white; margin: 0; }
-    .header-box h4 { color: orange; margin: 0; }
-    </style>
-    """, unsafe_allow_html=True
-)
+def load_csv(file):
+    return pd.read_csv(file)
 
-# ---------------- Header ---------------- #
-st.markdown(
-    """
-    <div class="header-box">
-        <h1>RefDedup - Duplicate Checker Removal</h1>
-        <h4>Developed by Mohamed Abu Elainein</h4>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+def load_bib(file):
+    bib_data = parse_file(file, bib_format="bibtex")
+    records = []
+    for entry_key, entry in bib_data.entries.items():
+        records.append({
+            "title": entry.fields.get("title", ""),
+            "author": " & ".join([str(p) for p in entry.persons.get("author", [])]),
+            "year": entry.fields.get("year", ""),
+        })
+    return pd.DataFrame(records)
 
-st.write("Upload your RIS or NBIB files below to remove duplicates based on Title, DOI, PMID, and Authors.")
+def deduplicate(df, threshold=85):
+    unique = []
+    duplicates = []
 
-# ---------------- Threshold Slider ---------------- #
-similarity = st.slider(
-    "Set Similarity Threshold (higher = stricter matching)",
-    min_value=70,
-    max_value=100,
-    value=90,
-    step=1
-)
+    for i, row in df.iterrows():
+        is_dup = False
+        for u in unique:
+            score = fuzz.ratio(str(row['title']), str(u['title']))
+            if score >= threshold:
+                duplicates.append(row)
+                is_dup = True
+                break
+        if not is_dup:
+            unique.append(row)
 
-# ---------------- File Uploader ---------------- #
-uploaded_files = st.file_uploader(
-    "Upload RIS/NBIB files",
-    type=["ris", "nbib"],
-    accept_multiple_files=True
-)
+    cleaned = pd.DataFrame(unique)
+    duplicates = pd.DataFrame(duplicates)
+    return cleaned, duplicates
 
-# ---------------- Processing ---------------- #
-if uploaded_files:
-    st.info("Processing files... Please wait.")
+def export_file(df, fmt="csv"):
+    buf = io.StringIO()
+    if fmt == "csv":
+        df.to_csv(buf, index=False)
+    elif fmt == "ris":
+        for _, row in df.iterrows():
+            buf.write("TY  - JOUR\n")
+            buf.write(f"TI  - {row.get('title','')}\n")
+            buf.write(f"AU  - {row.get('author','')}\n")
+            buf.write(f"PY  - {row.get('year','')}\n")
+            buf.write("ER  -\n\n")
+    elif fmt == "bib":
+        for i, row in df.iterrows():
+            buf.write(f"@article{{ref{i},\n")
+            buf.write(f"  title={{ {row.get('title','')} }},\n")
+            buf.write(f"  author={{ {row.get('author','')} }},\n")
+            buf.write(f"  year={{ {row.get('year','')} }}\n")
+            buf.write("}\n\n")
+    return buf.getvalue()
 
-    try:
-        cleaned_records, total_before, total_after = process_uploaded_files(uploaded_files, title_threshold=similarity)
+# -------------------
+# Streamlit UI
+# -------------------
 
-        # Generate cleaned RIS content
-        cleaned_content = "\n\n".join([record_to_ris(rec) for rec in cleaned_records])
+st.title("📚 Reference Deduplication Tool")
+st.write("Upload your reference files, set a deduplication threshold, and export cleaned + duplicates.")
 
-        # ---------------- Stats ---------------- #
-        st.success("Processing complete!")
-        st.write(f"**Total records before deduplication:** {total_before}")
-        st.write(f"**Total records after deduplication:** {total_after}")
-        st.write(f"**Duplicates removed:** {total_before - total_after} ({round((total_before-total_after)/total_before*100,2)}%)")
+uploaded_file = st.file_uploader("Upload Reference File (RIS, BibTeX, CSV)", type=["ris", "bib", "csv", "txt", "xml"])
 
-        # ---------------- Preview Table ---------------- #
+threshold = st.slider("Deduplication Threshold (%)", 70, 100, 85)
+
+if uploaded_file:
+    ext = uploaded_file.name.split(".")[-1].lower()
+
+    if ext == "ris":
+        df = load_ris(uploaded_file)
+    elif ext == "csv":
+        df = load_csv(uploaded_file)
+    elif ext == "bib":
+        df = load_bib(uploaded_file)
+    else:
+        st.error("Unsupported file format yet.")
+        df = None
+
+    if df is not None:
+        st.success(f"Loaded {len(df)} references.")
+
+        cleaned, duplicates = deduplicate(df, threshold)
+
         st.subheader("Preview of Cleaned References")
-        preview_df = pd.DataFrame(cleaned_records)
-        st.dataframe(preview_df.head(20))  # Show first 20 rows only
+        st.dataframe(cleaned.head(20))
 
-        # ---------------- Download Button ---------------- #
-        st.download_button(
-            label="Download Cleaned RIS File",
-            data=cleaned_content,
-            file_name="cleaned_references.ris",
-            mime="text/plain"
-        )
+        # Export options
+        st.subheader("Download Results")
 
-    except Exception as e:
-        st.error(f"An error occurred during processing: {e}")
+        col1, col2 = st.columns(2)
 
-# ---------------- Sidebar ---------------- #
-st.sidebar.header("About RefDedup")
-st.sidebar.write(
-    """
-    **RefDedup**  
-    Developed by **Mohamed Abu Elainein**  
+        with col1:
+            fmt = st.selectbox("Export Format for Cleaned", ["csv", "ris", "bib"])
+            st.download_button(
+                "Download Cleaned References",
+                data=export_file(cleaned, fmt),
+                file_name=f"cleaned.{fmt}",
+                mime="text/plain"
+            )
 
-    📌 Removes duplicate references from **RIS** and **NBIB** files.  
-    📌 Matching based on **Title, DOI, PMID, and Authors**.  
-    📌 Adjustable similarity threshold for flexible deduplication.  
-    📌 Clean and simple interface with stats + preview.  
-    """
-)
+        with col2:
+            fmt2 = st.selectbox("Export Format for Duplicates", ["csv", "ris", "bib"])
+            st.download_button(
+                "Download Duplicate References",
+                data=export_file(duplicates, fmt2),
+                file_name=f"duplicates.{fmt2}",
+                mime="text/plain"
+            )
