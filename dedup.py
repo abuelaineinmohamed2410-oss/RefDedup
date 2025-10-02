@@ -1,110 +1,207 @@
-# dedup.py
-
-import rispy
-import csv
-import io
 import re
+import io
+import csv
+import rispy
+import xml.etree.ElementTree as ET
+from rapidfuzz import fuzz
 
-# ---------------- NBIB Parsing ---------------- #
-def parse_nbib(text):
-    """Parse NBIB formatted text into records."""
+
+# ---------------- NBIB Parser ---------------- #
+def parse_nbib(content: str):
     records = []
-    current = {}
-    for line in text.splitlines():
-        if line.startswith("PMID-"):
-            if current:
-                records.append(current)
-                current = {}
-            current["pmid"] = line.replace("PMID-", "").strip()
-        elif line.startswith("TI  -"):
-            current["title"] = line.replace("TI  -", "").strip()
-        elif line.startswith("AU  -"):
-            current.setdefault("authors", []).append(line.replace("AU  -", "").strip())
-    if current:
-        records.append(current)
+    record = {}
+    last_tag = None
+    for line in content.splitlines():
+        line = line.strip()
+        if not line:
+            if record:
+                records.append(record)
+                record = {}
+            last_tag = None
+            continue
+        match = re.match(r"^([A-Z0-9]+)\s*-\s*(.*)$", line)
+        if match:
+            tag, value = match.groups()
+            if tag in record:
+                if isinstance(record[tag], list):
+                    record[tag].append(value)
+                else:
+                    record[tag] = [record[tag], value]
+            else:
+                record[tag] = value
+            last_tag = tag
+        else:
+            if last_tag:
+                if isinstance(record[last_tag], list):
+                    record[last_tag][-1] += " " + line
+                else:
+                    record[last_tag] += " " + line
+    if record:
+        records.append(record)
     return records
 
-# ---------------- Deduplication ---------------- #
+
+# ---------------- BibTeX Parser ---------------- #
+def parse_bib(content: str):
+    records = []
+    entry = {}
+    for line in content.splitlines():
+        line = line.strip()
+        if line.startswith("@"):
+            if entry:
+                records.append(entry)
+                entry = {}
+        elif "=" in line:
+            key, value = line.split("=", 1)
+            entry[key.strip()] = value.strip().strip("{},")
+    if entry:
+        records.append(entry)
+    return records
+
+
+# ---------------- EndNote XML Parser ---------------- #
+def parse_endnote_xml(content: str):
+    records = []
+    root = ET.fromstring(content)
+    for record in root.findall(".//record"):
+        entry = {}
+        for field in record:
+            tag = field.tag
+            value = "".join(field.itertext()).strip()
+            if tag in entry:
+                if isinstance(entry[tag], list):
+                    entry[tag].append(value)
+                else:
+                    entry[tag] = [entry[tag], value]
+            else:
+                entry[tag] = value
+        records.append(entry)
+    return records
+
+
+# ---------------- RIS Export ---------------- #
+def record_to_ris(record):
+    ris_lines = ["TY  - JOUR"]
+    for tag, value in record.items():
+        if isinstance(value, list):
+            for v in value:
+                ris_lines.append(f"{tag}  - {v}")
+        else:
+            ris_lines.append(f"{tag}  - {value}")
+    ris_lines.append("ER  -")
+    return "\n".join(ris_lines)
+
+
+# ---------------- Duplicate Removal ---------------- #
+def remove_duplicates(records, title_threshold=90):
+    cleaned = []
+    dups = []
+    seen_titles = []
+    seen_ids = set()
+
+    for rec in records:
+        pmid = rec.get("PMID", "")
+        doi = rec.get("DO", rec.get("LID", ""))
+        title = rec.get("TI", rec.get("title", ""))
+
+        if isinstance(title, list):
+            title = " ".join(title)
+        if isinstance(doi, list):
+            doi = doi[0]
+        if isinstance(pmid, list):
+            pmid = pmid[0]
+
+        duplicate = False
+        if pmid in seen_ids or doi in seen_ids:
+            duplicate = True
+        else:
+            for t in seen_titles:
+                if fuzz.ratio(str(title).lower(), str(t).lower()) >= title_threshold:
+                    duplicate = True
+                    break
+
+        if duplicate:
+            dups.append(rec)
+        else:
+            cleaned.append(rec)
+            seen_titles.append(title)
+            if pmid:
+                seen_ids.add(pmid)
+            if doi:
+                seen_ids.add(doi)
+
+    return cleaned, dups
+
+
+# ---------------- Processing Uploaded Files ---------------- #
 def process_uploaded_files(uploaded_files, title_threshold=90):
-    """Process multiple files, merge, and deduplicate by title."""
     all_records = []
 
-    for file in uploaded_files:
-        name = file.name.lower()
-        content = file.read()
+    for uploaded_file in uploaded_files:
+        name = uploaded_file.name.lower()
+        content = uploaded_file.getvalue()
 
         if name.endswith(".ris"):
-            file.seek(0)
-            records = rispy.load(file)
-        elif name.endswith(".nbib"):
-            records = parse_nbib(content.decode("utf-8"))
-        elif name.endswith(".csv"):
-            file.seek(0)
-            reader = csv.DictReader(io.StringIO(content.decode("utf-8")))
-            records = list(reader)
+            content_str = content.decode("utf-8", errors="ignore")
+            records = rispy.loads(content_str)
+
+        elif name.endswith(".nbib") or name.endswith(".txt"):
+            content_str = content.decode("utf-8", errors="ignore")
+            records = parse_nbib(content_str)
+
         elif name.endswith(".bib"):
-            records = parse_bib(content.decode("utf-8"))
+            content_str = content.decode("utf-8", errors="ignore")
+            records = parse_bib(content_str)
+
+        elif name.endswith(".xml"):
+            content_str = content.decode("utf-8", errors="ignore")
+            records = parse_endnote_xml(content_str)
+
+        elif name.endswith(".csv"):
+            reader = csv.DictReader(io.StringIO(content.decode("utf-8", errors="ignore")))
+            records = list(reader)
+
         else:
-            raise ValueError("Unsupported file format")
+            continue
 
         all_records.extend(records)
 
-    # Deduplicate (simple exact title match, case-insensitive)
-    unique_records, duplicates = [], []
-    seen = set()
-    for rec in all_records:
-        title = str(rec.get("title", "")).strip().lower()
-        if not title:
-            continue
-        if title in seen:
-            duplicates.append(rec)
-        else:
-            seen.add(title)
-            unique_records.append(rec)
+    total_count = len(all_records)
+    kept, dups = remove_duplicates(all_records, title_threshold)
+    return kept, dups, total_count
 
-    return unique_records, duplicates, len(all_records), len(unique_records)
 
-# ---------------- Export Helpers ---------------- #
+# ---------------- Export Functions ---------------- #
 def export_to_ris(records):
-    return "\n\n".join([record_to_ris(r) for r in records])
-
-def export_to_bib(records):
-    return "\n\n".join([record_to_bib(r) for r in records])
+    return "\n\n".join(record_to_ris(r) for r in records)
 
 def export_to_csv(records):
-    output = io.StringIO()
     if not records:
         return ""
+    output = io.StringIO()
     writer = csv.DictWriter(output, fieldnames=records[0].keys())
     writer.writeheader()
     writer.writerows(records)
     return output.getvalue()
 
+def export_to_bib(records):
+    bib_lines = []
+    for i, rec in enumerate(records):
+        bib_lines.append(f"@article{{ref{i},")
+        for k, v in rec.items():
+            val = v if not isinstance(v, list) else "; ".join(v)
+            bib_lines.append(f"  {k} = {{{val}}},")
+        bib_lines.append("}")
+    return "\n".join(bib_lines)
+
 def export_to_nbib(records):
-    return "\n\n".join([record_to_nbib(r) for r in records])
-
-# ---------------- Converters ---------------- #
-def record_to_ris(record):
-    return f"TY  - JOUR\nTI  - {record.get('title','')}\nAU  - {', '.join(record.get('authors', []) if isinstance(record.get('authors'), list) else [record.get('authors','')])}\nER  -"
-
-def record_to_bib(record):
-    return f"@article{{,\ntitle={{ {record.get('title','')} }},\nauthor={{ {' and '.join(record.get('authors', []) if isinstance(record.get('authors'), list) else [record.get('authors','')])} }},\n}}"
-
-def record_to_nbib(record):
-    return f"PMID- {record.get('pmid','')}\nTI  - {record.get('title','')}\n" + "\n".join([f"AU  - {a}" for a in (record.get('authors', []) if isinstance(record.get('authors'), list) else [record.get('authors','')])])
-
-# ---------------- Bib Parser ---------------- #
-def parse_bib(text):
-    """Very simple BibTeX parser (just extracts title & authors)."""
-    records = []
-    entries = text.split("@")[1:]
-    for entry in entries:
-        rec = {}
-        title_match = re.search(r"title\s*=\s*[{](.*?)[}]", entry, re.I)
-        author_match = re.search(r"author\s*=\s*[{](.*?)[}]", entry, re.I)
-        if title_match:
-            rec["title"] = title_match.group(1)
-        if author_match:
-            rec["authors"] = [a.strip() for a in author_match.group(1).split(" and ")]
-        records.append(rec)
-    return records
+    nbib_lines = []
+    for rec in records:
+        for k, v in rec.items():
+            if isinstance(v, list):
+                for val in v:
+                    nbib_lines.append(f"{k} - {val}")
+            else:
+                nbib_lines.append(f"{k} - {v}")
+        nbib_lines.append("")
+    return "\n".join(nbib_lines)
