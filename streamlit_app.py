@@ -1,10 +1,5 @@
 import streamlit as st
-
-# Try importing depup.py or dedup.py depending on your repo
-try:
-    from depup import process_uploaded_files, record_to_ris
-except ModuleNotFoundError:
-    from dedup import process_uploaded_files, record_to_ris
+from dedup import process_uploaded_files, record_to_ris  # Correct import
 
 # ---------------- Page Config ---------------- #
 st.set_page_config(
@@ -33,6 +28,10 @@ st.markdown(
         color: white;
         margin: 0;
     }
+    .header-box h4 {
+        color: orange;
+        margin: 0;
+    }
     /* Other texts */
     .stText, .stMarkdown {
         color: black;
@@ -46,7 +45,7 @@ st.markdown(
     """
     <div class="header-box">
         <h1>RefDedup - Duplicate Checker Removal</h1>
-        <p>Developed by Mohamed Abu Elainein</p>
+        <h4>Developed by Mohamed Abu Elainein</h4>
     </div>
     """,
     unsafe_allow_html=True
