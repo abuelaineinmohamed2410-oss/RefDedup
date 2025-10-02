@@ -1,57 +1,61 @@
+# streamlit_app.py
 import streamlit as st
-from dedup import parse_file, deduplicate, export_references
+from dedup import process_uploaded_files, export_to_ris, export_to_bib, export_to_csv, export_to_nbib
 
-st.set_page_config(page_title="Reference Deduplicator", layout="wide")
+st.set_page_config(page_title="RefDedup", layout="centered", page_icon=None)
 
-st.title("Reference Deduplicator")
-st.markdown("Upload your exported reference files (RIS, NBIB, BibTeX, EndNote XML, CSV, TXT).")
+st.markdown("""
+<div style="background:#0B3D91;padding:16px;border-radius:8px;text-align:center;">
+  <h1 style="color:white;margin:0;">RefDedup — Duplicate Checker</h1>
+  <div style="color:#F6F0E3;margin-top:6px;">Developed by Mohamed Abu Elainein</div>
+</div>
+""", unsafe_allow_html=True)
 
-uploaded_files = st.file_uploader(
-    "Upload one or more files", 
-    type=["ris", "nbib", "bib", "xml", "csv", "txt"],
-    accept_multiple_files=True
-)
+st.write("Upload reference files (RIS, NBIB, BibTeX, EndNote XML, CSV, TXT). Multiple files allowed.")
 
-threshold = st.slider("Similarity threshold (%)", 70, 100, 90)
-st.caption("Recommended: 90% (balanced). Lower = more aggressive, higher = stricter.")
+uploaded = st.file_uploader("Select files", type=['ris','nbib','bib','xml','csv','txt'], accept_multiple_files=True)
+threshold = st.slider("Similarity threshold (%)", 70, 100, 90, help="Recommended = 90%")
 
-if uploaded_files:
-    all_records = []
-    for file in uploaded_files:
-        try:
-            records = parse_file(file)
-            all_records.extend(records)
-        except Exception as e:
-            st.error(f"Could not parse {file.name}: {e}")
+if uploaded:
+    st.info("Processing, please wait...")
+    kept, dups, total = process_uploaded_files(uploaded, title_threshold_percent=threshold)
+    st.success("Done")
 
-    if all_records:
-        unique, duplicates = deduplicate(all_records, threshold / 100.0)
+    st.write(f"Total parsed records: {total}")
+    st.write(f"Kept (unique): {len(kept)}")
+    st.write(f"Duplicates found: {len(dups)}")
 
-        st.subheader("Unique References (Cleaned Preview)")
-        for r in unique[:10]:
-            st.write("- " + r.get("title", "Untitled"))
-        if len(unique) > 10:
-            st.write(f"... and {len(unique) - 10} more")
+    st.subheader("Preview — kept (first 10)")
+    for r in kept[:10]:
+        st.write(r.get('title', '(no title)'))
+        if r.get('authors'):
+            st.write("  " + "; ".join(r.get('authors')))
 
-        st.subheader("Duplicate References (Preview)")
-        for r in duplicates[:10]:
-            st.write("- " + r.get("title", "Untitled"))
-        if len(duplicates) > 10:
-            st.write(f"... and {len(duplicates) - 10} more")
+    st.subheader("Preview — duplicates (first 10)")
+    for r in dups[:10]:
+        st.write(r.get('title', '(no title)'), f" — score: {r.get('match_score','') if 'match_score' in r else ''}")
 
-        fmt = st.selectbox("Export format", ["csv", "ris", "bib", "nbib", "json"])
-
-        if st.button("Export Cleaned & Duplicates"):
-            cleaned_bytes = export_references(unique, fmt)
-            dups_bytes = export_references(duplicates, fmt)
-
-            st.download_button(
-                "Download Unique References",
-                cleaned_bytes,
-                file_name=f"unique_references.{fmt}"
-            )
-            st.download_button(
-                "Download Duplicate References",
-                dups_bytes,
-                file_name=f"duplicate_references.{fmt}"
-            )
+    # downloads
+    col1, col2 = st.columns(2)
+    with col1:
+        fmt_clean = st.selectbox("Format for cleaned file", ['ris','nbib','bib','csv'])
+        if st.button("Download cleaned references"):
+            if fmt_clean == 'ris':
+                st.download_button("Download", export_to_ris(kept), file_name="cleaned.ris", mime="text/plain")
+            elif fmt_clean == 'nbib':
+                st.download_button("Download", export_to_nbib(kept), file_name="cleaned.nbib", mime="text/plain")
+            elif fmt_clean == 'bib':
+                st.download_button("Download", export_to_bib(kept), file_name="cleaned.bib", mime="text/plain")
+            else:
+                st.download_button("Download", export_to_csv(kept), file_name="cleaned.csv", mime="text/csv")
+    with col2:
+        fmt_dup = st.selectbox("Format for duplicates file", ['ris','nbib','bib','csv'], index=1)
+        if st.button("Download duplicates"):
+            if fmt_dup == 'ris':
+                st.download_button("Download", export_to_ris(dups), file_name="duplicates.ris", mime="text/plain")
+            elif fmt_dup == 'nbib':
+                st.download_button("Download", export_to_nbib(dups), file_name="duplicates.nbib", mime="text/plain")
+            elif fmt_dup == 'bib':
+                st.download_button("Download", export_to_bib(dups), file_name="duplicates.bib", mime="text/plain")
+            else:
+                st.download_button("Download", export_to_csv(dups), file_name="duplicates.csv", mime="text/csv")
