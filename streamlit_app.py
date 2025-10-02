@@ -76,25 +76,30 @@ def export_ris(df):
 # -------------------
 
 st.title("Reference Deduplication Tool")
-st.write("Upload your `.nbib` or `.ris` file. The tool will remove duplicates (based on title similarity) and provide two RIS files: one cleansed set and one containing duplicates.")
+st.write("Upload multiple `.nbib` and `.ris` files. The tool merges all references, removes duplicates, and generates two RIS files: one cleaned set and one duplicates set.")
 
-uploaded_file = st.file_uploader("Upload File", type=["nbib", "ris"])
+uploaded_files = st.file_uploader("Upload Files", type=["nbib", "ris"], accept_multiple_files=True)
 
 threshold = st.slider("Deduplication Threshold (%)", 70, 100, 90)
 
-if uploaded_file:
-    ext = uploaded_file.name.split(".")[-1].lower()
+if uploaded_files:
+    all_refs = []
 
-    if ext == "ris":
-        df = load_ris(uploaded_file)
-    elif ext == "nbib":
-        df = load_nbib(uploaded_file)
-    else:
-        df = None
-        st.error("Unsupported file format.")
+    for file in uploaded_files:
+        ext = file.name.split(".")[-1].lower()
+        if ext == "ris":
+            df = load_ris(file)
+        elif ext == "nbib":
+            df = load_nbib(file)
+        else:
+            df = None
+            st.error(f"Unsupported file format: {file.name}")
+        if df is not None and not df.empty:
+            all_refs.append(df)
 
-    if df is not None and not df.empty:
-        st.success(f"Loaded {len(df)} references.")
+    if all_refs:
+        df = pd.concat(all_refs, ignore_index=True)
+        st.success(f"Loaded {len(df)} references from {len(uploaded_files)} file(s).")
 
         cleaned, duplicates = deduplicate(df, threshold)
 
