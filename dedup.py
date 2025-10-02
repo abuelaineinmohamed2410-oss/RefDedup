@@ -1,207 +1,119 @@
-import re
-import io
-import csv
 import rispy
+import pandas as pd
+import io
+import difflib
 import xml.etree.ElementTree as ET
-from rapidfuzz import fuzz
 
+# ------------------- FILE PARSERS ------------------- #
+def parse_file(file):
+    ext = file.name.split(".")[-1].lower()
+    content = file.read().decode("utf-8", errors="ignore")
 
-# ---------------- NBIB Parser ---------------- #
-def parse_nbib(content: str):
-    records = []
-    record = {}
-    last_tag = None
-    for line in content.splitlines():
-        line = line.strip()
-        if not line:
-            if record:
-                records.append(record)
-                record = {}
-            last_tag = None
-            continue
-        match = re.match(r"^([A-Z0-9]+)\s*-\s*(.*)$", line)
-        if match:
-            tag, value = match.groups()
-            if tag in record:
-                if isinstance(record[tag], list):
-                    record[tag].append(value)
-                else:
-                    record[tag] = [record[tag], value]
-            else:
-                record[tag] = value
-            last_tag = tag
-        else:
-            if last_tag:
-                if isinstance(record[last_tag], list):
-                    record[last_tag][-1] += " " + line
-                else:
-                    record[last_tag] += " " + line
-    if record:
-        records.append(record)
-    return records
+    if ext == "ris":
+        file.seek(0)
+        return rispy.load(file)
 
-
-# ---------------- BibTeX Parser ---------------- #
-def parse_bib(content: str):
-    records = []
-    entry = {}
-    for line in content.splitlines():
-        line = line.strip()
-        if line.startswith("@"):
-            if entry:
-                records.append(entry)
-                entry = {}
-        elif "=" in line:
-            key, value = line.split("=", 1)
-            entry[key.strip()] = value.strip().strip("{},")
-    if entry:
-        records.append(entry)
-    return records
-
-
-# ---------------- EndNote XML Parser ---------------- #
-def parse_endnote_xml(content: str):
-    records = []
-    root = ET.fromstring(content)
-    for record in root.findall(".//record"):
+    elif ext == "nbib":
+        records = []
         entry = {}
-        for field in record:
-            tag = field.tag
-            value = "".join(field.itertext()).strip()
-            if tag in entry:
-                if isinstance(entry[tag], list):
-                    entry[tag].append(value)
-                else:
-                    entry[tag] = [entry[tag], value]
-            else:
-                entry[tag] = value
-        records.append(entry)
-    return records
+        for line in content.splitlines():
+            if line.startswith("PMID-"):
+                if entry: records.append(entry)
+                entry = {"PMID": line[6:].strip()}
+            elif line.startswith("TI  -"):
+                entry["title"] = line[6:].strip()
+            elif line.startswith("AU  -"):
+                entry.setdefault("authors", "")
+                entry["authors"] += line[6:].strip() + "; "
+        if entry: records.append(entry)
+        return records
+
+    elif ext == "bib":
+        records = []
+        for entry in content.split("@")[1:]:
+            lines = entry.splitlines()
+            title, authors = "", ""
+            for line in lines:
+                if "title" in line.lower():
+                    title = line.split("=",1)[1].strip().strip("{}, ")
+                if "author" in line.lower():
+                    authors = line.split("=",1)[1].strip().strip("{}, ")
+            records.append({"title": title, "authors": authors})
+        return records
+
+    elif ext == "xml":
+        records = []
+        root = ET.fromstring(content)
+        for rec in root.findall(".//record"):
+            title = rec.findtext("titles/title", "")
+            authors = "; ".join([a.text for a in rec.findall(".//contributors/authors/author")])
+            records.append({"title": title, "authors": authors})
+        return records
+
+    elif ext == "csv" or ext == "txt":
+        df = pd.read_csv(io.StringIO(content))
+        return df.to_dict("records")
+
+    return []
 
 
-# ---------------- RIS Export ---------------- #
-def record_to_ris(record):
-    ris_lines = ["TY  - JOUR"]
-    for tag, value in record.items():
-        if isinstance(value, list):
-            for v in value:
-                ris_lines.append(f"{tag}  - {v}")
-        else:
-            ris_lines.append(f"{tag}  - {value}")
-    ris_lines.append("ER  -")
-    return "\n".join(ris_lines)
-
-
-# ---------------- Duplicate Removal ---------------- #
-def remove_duplicates(records, title_threshold=90):
-    cleaned = []
-    dups = []
-    seen_titles = []
-    seen_ids = set()
+# ------------------- DEDUPLICATION ------------------- #
+def deduplicate(records, threshold=90):
+    seen, kept, duplicates = [], [], []
 
     for rec in records:
-        pmid = rec.get("PMID", "")
-        doi = rec.get("DO", rec.get("LID", ""))
-        title = rec.get("TI", rec.get("title", ""))
-
-        if isinstance(title, list):
-            title = " ".join(title)
-        if isinstance(doi, list):
-            doi = doi[0]
-        if isinstance(pmid, list):
-            pmid = pmid[0]
-
-        duplicate = False
-        if pmid in seen_ids or doi in seen_ids:
-            duplicate = True
-        else:
-            for t in seen_titles:
-                if fuzz.ratio(str(title).lower(), str(t).lower()) >= title_threshold:
-                    duplicate = True
-                    break
-
-        if duplicate:
-            dups.append(rec)
-        else:
-            cleaned.append(rec)
-            seen_titles.append(title)
-            if pmid:
-                seen_ids.add(pmid)
-            if doi:
-                seen_ids.add(doi)
-
-    return cleaned, dups
-
-
-# ---------------- Processing Uploaded Files ---------------- #
-def process_uploaded_files(uploaded_files, title_threshold=90):
-    all_records = []
-
-    for uploaded_file in uploaded_files:
-        name = uploaded_file.name.lower()
-        content = uploaded_file.getvalue()
-
-        if name.endswith(".ris"):
-            content_str = content.decode("utf-8", errors="ignore")
-            records = rispy.loads(content_str)
-
-        elif name.endswith(".nbib") or name.endswith(".txt"):
-            content_str = content.decode("utf-8", errors="ignore")
-            records = parse_nbib(content_str)
-
-        elif name.endswith(".bib"):
-            content_str = content.decode("utf-8", errors="ignore")
-            records = parse_bib(content_str)
-
-        elif name.endswith(".xml"):
-            content_str = content.decode("utf-8", errors="ignore")
-            records = parse_endnote_xml(content_str)
-
-        elif name.endswith(".csv"):
-            reader = csv.DictReader(io.StringIO(content.decode("utf-8", errors="ignore")))
-            records = list(reader)
-
-        else:
+        title = rec.get("title", "").strip()
+        if not title:
+            kept.append(rec)
             continue
 
-        all_records.extend(records)
+        matched = False
+        for seen_title in seen:
+            if difflib.SequenceMatcher(None, title.lower(), seen_title.lower()).ratio()*100 >= threshold:
+                duplicates.append(rec)
+                matched = True
+                break
 
-    total_count = len(all_records)
-    kept, dups = remove_duplicates(all_records, title_threshold)
-    return kept, dups, total_count
+        if not matched:
+            kept.append(rec)
+            seen.append(title)
+
+    return kept, duplicates, len(records)
 
 
-# ---------------- Export Functions ---------------- #
-def export_to_ris(records):
-    return "\n\n".join(record_to_ris(r) for r in records)
+# ------------------- EXPORTERS ------------------- #
+def export_references(records, fmt="ris"):
+    buf = io.StringIO()
 
-def export_to_csv(records):
-    if not records:
-        return ""
-    output = io.StringIO()
-    writer = csv.DictWriter(output, fieldnames=records[0].keys())
-    writer.writeheader()
-    writer.writerows(records)
-    return output.getvalue()
+    if fmt == "ris":
+        for r in records:
+            buf.write("TY  - JOUR\n")
+            if "title" in r: buf.write(f"TI  - {r['title']}\n")
+            if "authors" in r: 
+                for a in r['authors'].split(";"):
+                    if a.strip():
+                        buf.write(f"AU  - {a.strip()}\n")
+            buf.write("ER  - \n\n")
 
-def export_to_bib(records):
-    bib_lines = []
-    for i, rec in enumerate(records):
-        bib_lines.append(f"@article{{ref{i},")
-        for k, v in rec.items():
-            val = v if not isinstance(v, list) else "; ".join(v)
-            bib_lines.append(f"  {k} = {{{val}}},")
-        bib_lines.append("}")
-    return "\n".join(bib_lines)
+    elif fmt == "bib":
+        for i, r in enumerate(records):
+            buf.write(f"@article{{ref{i},\n")
+            if "title" in r: buf.write(f"  title = {{{r['title']}}},\n")
+            if "authors" in r: buf.write(f"  author = {{{r['authors']}}},\n")
+            buf.write("}\n\n")
 
-def export_to_nbib(records):
-    nbib_lines = []
-    for rec in records:
-        for k, v in rec.items():
-            if isinstance(v, list):
-                for val in v:
-                    nbib_lines.append(f"{k} - {val}")
-            else:
-                nbib_lines.append(f"{k} - {v}")
-        nbib_lines.append("")
-    return "\n".join(nbib_lines)
+    elif fmt == "csv":
+        df = pd.DataFrame(records)
+        return df.to_csv(index=False)
+
+    elif fmt == "nbib":
+        for r in records:
+            if "PMID" in r: buf.write(f"PMID- {r['PMID']}\n")
+            if "title" in r: buf.write(f"TI  - {r['title']}\n")
+            if "authors" in r:
+                for a in r['authors'].split(";"):
+                    if a.strip():
+                        buf.write(f"AU  - {a.strip()}\n")
+            buf.write("\n")
+
+    return buf.getvalue()
