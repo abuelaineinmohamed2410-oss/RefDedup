@@ -1,81 +1,57 @@
 import streamlit as st
-from io import StringIO
-from pathlib import Path
-from dedup import process_uploaded_files, record_to_ris
+from dedup import parse_file, deduplicate, export_references
 
-# Page config & style
-st.set_page_config(page_title="RefDedup", page_icon="📚", layout="centered")
-st.markdown("""
-<style>
-.stApp { background-color: white; }
-.header-box {
-    background-color: #0B3D91;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-}
-.header-box h1 { color: white; margin: 0; }
-.header-box h4 { color: orange; margin: 0; }
-.stText, .stMarkdown { color: black; }
-</style>
-""", unsafe_allow_html=True)
+st.set_page_config(page_title="Reference Deduplicator", layout="wide")
 
-st.markdown("""
-<div class="header-box">
-    <h1>RefDedup - Duplicate Checker Removal</h1>
-    <h4>Developed by Mohamed Abu Elainein</h4>
-</div>
-""", unsafe_allow_html=True)
-
-st.write("Upload your RIS, NBIB, BIB, or CSV files to remove duplicates based on Title, DOI, PMID, and Authors.")
+st.title("Reference Deduplicator")
+st.markdown("Upload your exported reference files (RIS, NBIB, BibTeX, EndNote XML, CSV, TXT).")
 
 uploaded_files = st.file_uploader(
-    "Upload bibliographic files",
-    type=["ris", "nbib", "bib", "csv"],
+    "Upload one or more files", 
+    type=["ris", "nbib", "bib", "xml", "csv", "txt"],
     accept_multiple_files=True
 )
 
-title_threshold = st.slider("Title similarity threshold (%)", min_value=80, max_value=99, value=90, step=1)
+threshold = st.slider("Similarity threshold (%)", 70, 100, 90)
+st.caption("Recommended: 90% (balanced). Lower = more aggressive, higher = stricter.")
 
 if uploaded_files:
-    st.info("Processing files... Please wait.")
+    all_records = []
+    for file in uploaded_files:
+        try:
+            records = parse_file(file)
+            all_records.extend(records)
+        except Exception as e:
+            st.error(f"Could not parse {file.name}: {e}")
 
-    try:
-        cleaned_records, duplicate_records, total_before, total_after = process_uploaded_files(
-            uploaded_files, title_threshold=title_threshold
-        )
+    if all_records:
+        unique, duplicates = deduplicate(all_records, threshold / 100.0)
 
-        cleaned_content = "\n\n".join([record_to_ris(rec) for rec in cleaned_records])
-        duplicate_content = "\n\n".join([record_to_ris(rec) for rec in duplicate_records])
+        st.subheader("Unique References (Cleaned Preview)")
+        for r in unique[:10]:
+            st.write("- " + r.get("title", "Untitled"))
+        if len(unique) > 10:
+            st.write(f"... and {len(unique) - 10} more")
 
-        st.success("Processing complete!")
-        st.write(f"**Total records before deduplication:** {total_before}")
-        st.write(f"**Total records after deduplication:** {total_after}")
-        st.write(f"**Duplicates found:** {len(duplicate_records)}")
+        st.subheader("Duplicate References (Preview)")
+        for r in duplicates[:10]:
+            st.write("- " + r.get("title", "Untitled"))
+        if len(duplicates) > 10:
+            st.write(f"... and {len(duplicates) - 10} more")
 
-        st.download_button(
-            label="Download Cleaned RIS File",
-            data=cleaned_content,
-            file_name="cleaned_references.ris",
-            mime="text/plain"
-        )
+        fmt = st.selectbox("Export format", ["csv", "ris", "bib", "nbib", "json"])
 
-        if duplicate_records:
+        if st.button("Export Cleaned & Duplicates"):
+            cleaned_bytes = export_references(unique, fmt)
+            dups_bytes = export_references(duplicates, fmt)
+
             st.download_button(
-                label="Download Duplicate RIS File",
-                data=duplicate_content,
-                file_name="duplicates.ris",
-                mime="text/plain"
+                "Download Unique References",
+                cleaned_bytes,
+                file_name=f"unique_references.{fmt}"
             )
-
-    except Exception as e:
-        st.error(f"Error during processing: {e}")
-
-st.sidebar.header("About RefDedup")
-st.sidebar.write("""
-**RefDedup**  
-Developed by **Mohamed Abu Elainein**  
-
-Remove duplicate references from **RIS**, **NBIB**, **BIB**, and **CSV** files  
-using accurate matching on **Title, DOI, PMID, and Authors**.
-""")
+            st.download_button(
+                "Download Duplicate References",
+                dups_bytes,
+                file_name=f"duplicate_references.{fmt}"
+            )
