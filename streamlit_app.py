@@ -10,157 +10,125 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Clean Professional Dark Blue Theme
+# Simple Clean Theme with Perfect Contrast
 st.markdown("""
     <style>
-    /* Professional color palette */
+    /* Simple, clean colors */
     :root {
-        --navy-primary: #1e3a8a;
-        --navy-secondary: #1e40af;
-        --navy-light: #3b82f6;
-        --slate-dark: #0f172a;
-        --slate-medium: #1e293b;
-        --slate-light: #334155;
-        --text-white: #ffffff;
-        --text-light: #e2e8f0;
-        --text-dark: #1f2937;
-        --success: #059669;
-        --warning: #d97706;
-        --error: #dc2626;
-        --border-light: #e5e7eb;
-        --border-dark: #374151;
+        --dark-bg: #1a1a1a;
+        --medium-bg: #2d2d2d;
+        --light-bg: #404040;
+        --white-text: #ffffff;
+        --light-text: #e0e0e0;
+        --accent-blue: #4a90e2;
+        --success-green: #27ae60;
+        --warning-orange: #f39c12;
+        --error-red: #e74c3c;
+        --border-gray: #555555;
     }
     
     /* Main app background */
     .stApp {
-        background: linear-gradient(135deg, var(--slate-dark) 0%, var(--navy-primary) 100%);
-        color: var(--text-white);
+        background-color: var(--dark-bg);
+        color: var(--white-text);
     }
     
     /* Sidebar */
     section[data-testid="stSidebar"] {
-        background-color: var(--slate-medium) !important;
+        background-color: var(--medium-bg) !important;
     }
     
     section[data-testid="stSidebar"] * {
-        color: var(--text-white) !important;
+        color: var(--white-text) !important;
     }
     
     /* Headers */
     .main-header {
-        font-size: 3rem;
-        color: var(--text-white);
+        font-size: 2.5rem;
+        color: var(--white-text);
         text-align: center;
         margin-bottom: 1rem;
         font-weight: 700;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     
     .sub-header {
         font-size: 1.1rem;
-        color: var(--text-light);
+        color: var(--light-text);
         text-align: center;
         margin-bottom: 2rem;
         font-weight: 400;
     }
     
     .section-header {
-        font-size: 1.3rem;
-        color: var(--text-white);
+        font-size: 1.2rem;
+        color: var(--white-text);
         margin-bottom: 1rem;
         font-weight: 600;
-        border-bottom: 2px solid var(--navy-light);
+        border-bottom: 1px solid var(--border-gray);
         padding-bottom: 0.5rem;
     }
     
     /* Prerelease badge */
     .prerelease-badge {
-        background: var(--warning);
+        background-color: var(--warning-orange);
         color: white;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
         font-size: 0.8rem;
-        font-weight: 700;
+        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
         display: block;
         text-align: center;
         width: fit-content;
         margin: 0 auto 2rem auto;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
     
-    /* Cards and containers */
-    .info-box, .feature-box, .method-card, .sidebar-section {
-        background: var(--slate-light);
-        padding: 1.5rem;
+    /* Cards */
+    .info-box, .feature-box, .method-card, .sidebar-section, .version-info, .file-list, .download-section {
+        background-color: var(--medium-bg);
+        padding: 1.2rem;
         border-radius: 8px;
-        border: 1px solid var(--border-dark);
+        border: 1px solid var(--border-gray);
         margin: 1rem 0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     
-    .info-box h4, .feature-box h4, .method-card .method-title {
-        color: var(--navy-light);
-        margin-bottom: 1rem;
+    .info-box h4, .feature-box h4 {
+        color: var(--accent-blue);
+        margin-bottom: 0.8rem;
         font-weight: 600;
+    }
+    
+    .method-title {
+        color: var(--accent-blue);
+        font-weight: 600;
+        margin-bottom: 0.8rem;
     }
     
     .info-box p, .info-box li,
     .feature-box p, .feature-box li,
     .method-card p,
-    .sidebar-section p, .sidebar-section li {
-        color: var(--text-light);
-        line-height: 1.6;
+    .sidebar-section p, .sidebar-section li,
+    .download-section p {
+        color: var(--light-text);
+        line-height: 1.5;
     }
     
-    /* Version info */
-    .version-info {
-        background: var(--slate-light);
-        padding: 1rem;
-        border-radius: 8px;
-        border: 1px solid var(--border-dark);
-        margin: 1rem 0;
-        text-align: center;
-    }
-    
-    .version-info p {
-        color: var(--text-white);
+    .version-info p, .file-list p {
+        color: var(--white-text);
         margin: 0.2rem 0;
     }
     
-    /* File list */
-    .file-list {
-        background: var(--slate-light);
-        padding: 1rem;
-        border-radius: 8px;
-        border: 1px solid var(--border-dark);
-        margin: 1rem 0;
-    }
-    
-    .file-list p {
-        color: var(--text-white);
-        margin: 0.3rem 0;
-    }
-    
     .file-list span {
-        color: var(--text-light);
+        color: var(--light-text);
     }
     
     /* Metric cards */
     .metric-card {
-        background: var(--slate-light);
+        background-color: var(--medium-bg);
         padding: 1.5rem;
         border-radius: 8px;
-        border: 1px solid var(--border-dark);
+        border: 1px solid var(--border-gray);
         text-align: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        transition: transform 0.2s ease;
-    }
-    
-    .metric-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
     
     .metric-value {
@@ -171,102 +139,51 @@ st.markdown("""
     
     .metric-label {
         font-size: 0.9rem;
-        color: var(--text-light);
+        color: var(--light-text);
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        font-weight: 500;
     }
     
     /* Messages */
     .success-message {
-        background: var(--success);
+        background-color: var(--success-green);
         color: white;
-        padding: 1.2rem;
-        border-radius: 8px;
+        padding: 1rem;
+        border-radius: 6px;
         font-weight: 500;
         margin: 1rem 0;
     }
     
     .error-message {
-        background: var(--error);
+        background-color: var(--error-red);
         color: white;
-        padding: 1.2rem;
-        border-radius: 8px;
+        padding: 1rem;
+        border-radius: 6px;
         font-weight: 500;
         margin: 1rem 0;
-    }
-    
-    /* Download section */
-    .download-section {
-        background: var(--slate-light);
-        padding: 1.5rem;
-        border-radius: 8px;
-        border: 1px solid var(--success);
-        margin: 1.5rem 0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .download-section h4 {
-        color: var(--text-white);
-        margin-bottom: 1rem;
-    }
-    
-    .download-section p {
-        color: var(--text-light);
     }
     
     /* Footer */
     .footer-text {
         text-align: center;
-        color: var(--text-light);
+        color: var(--light-text);
         font-style: italic;
         margin-top: 2rem;
         padding: 1rem;
-        border-top: 1px solid var(--border-dark);
+        border-top: 1px solid var(--border-gray);
     }
     
-    /* Streamlit components - let them keep their default styling but ensure readability */
-    .stButton > button {
-        border-radius: 6px;
-        font-weight: 500;
-        border: none;
-        padding: 0.5rem 1rem;
-    }
-    
-    .stDownloadButton > button {
-        border-radius: 6px;
-        font-weight: 500;
-        border: none;
-        padding: 0.5rem 1rem;
-    }
-    
-    /* File uploader - keep Streamlit's default styling */
+    /* Streamlit overrides only where necessary */
     .stFileUploader label {
-        color: var(--text-white) !important;
+        color: var(--white-text) !important;
     }
     
-    /* Slider */
     .stSlider label {
-        color: var(--text-white) !important;
+        color: var(--white-text) !important;
     }
     
-    /* General text */
     h1, h2, h3, h4, h5, h6 {
-        color: var(--text-white);
-    }
-    
-    .stMarkdown {
-        color: var(--text-light);
-    }
-    
-    /* Method cards hover effect */
-    .method-card {
-        transition: transform 0.2s ease;
-    }
-    
-    .method-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        color: var(--white-text);
     }
     </style>
 """, unsafe_allow_html=True)
@@ -357,7 +274,7 @@ with col2:
             <li style="margin-bottom: 0.5rem;">• Intelligent duplicate detection</li>
             <li style="margin-bottom: 0.5rem;">• Conservative similarity matching</li>
             <li style="margin-bottom: 0.5rem;">• Dual output files (clean + duplicates)</li>
-            <li style="margin-bottom: 0.5rem;">• Professional interface design</li>
+            <li style="margin-bottom: 0.5rem;">• Clean professional interface</li>
         </ul>
     </div>
     """, unsafe_allow_html=True)
@@ -414,7 +331,7 @@ if uploaded_files:
                 with col1:
                     st.markdown("""
                     <div class="metric-card">
-                        <div class="metric-value" style="color: #3b82f6;">{}</div>
+                        <div class="metric-value" style="color: #4a90e2;">{}</div>
                         <div class="metric-label">Original Records</div>
                     </div>
                     """.format(total_before), unsafe_allow_html=True)
@@ -422,7 +339,7 @@ if uploaded_files:
                 with col2:
                     st.markdown("""
                     <div class="metric-card">
-                        <div class="metric-value" style="color: #059669;">{}</div>
+                        <div class="metric-value" style="color: #27ae60;">{}</div>
                         <div class="metric-label">Final Records</div>
                     </div>
                     """.format(total_after), unsafe_allow_html=True)
@@ -431,7 +348,7 @@ if uploaded_files:
                     duplicates_removed = total_before - total_after
                     st.markdown("""
                     <div class="metric-card">
-                        <div class="metric-value" style="color: #dc2626;">{}</div>
+                        <div class="metric-value" style="color: #e74c3c;">{}</div>
                         <div class="metric-label">Duplicates Found</div>
                     </div>
                     """.format(duplicates_removed), unsafe_allow_html=True)
@@ -443,7 +360,7 @@ if uploaded_files:
                         reduction_percent = 0
                     st.markdown("""
                     <div class="metric-card">
-                        <div class="metric-value" style="color: #d97706;">{:.1f}%</div>
+                        <div class="metric-value" style="color: #f39c12;">{:.1f}%</div>
                         <div class="metric-label">Reduction</div>
                     </div>
                     """.format(reduction_percent), unsafe_allow_html=True)
@@ -472,7 +389,7 @@ if uploaded_files:
                 # Download section
                 st.markdown("""
                 <div class="download-section">
-                    <h4>Download Results</h4>
+                    <h4 style="color: white; margin-bottom: 1rem;">Download Results</h4>
                     <p>Two files are available for download:</p>
                 """, unsafe_allow_html=True)
                 
