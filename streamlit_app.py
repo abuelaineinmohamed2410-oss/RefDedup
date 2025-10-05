@@ -6,6 +6,7 @@ import time
 # Page configuration
 st.set_page_config(
     page_title="RefDedup - Reference Duplicate Remover",
+    page_icon="logo.png",  
     layout="wide",
     initial_sidebar_state="expanded"
 )
