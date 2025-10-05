@@ -1,11 +1,10 @@
 import re
 import unicodedata
-from rapidfuzz import fuzz, process
+from rapidfuzz import fuzz
 
 def normalize_text(text):
     if not isinstance(text, str):
         text = str(text)
-    # Remove accents, unify case, strip
     text = unicodedata.normalize('NFKD', text)
     text = text.encode('ascii', 'ignore').decode('utf-8')
     return re.sub(r's+', ' ', text).strip().lower()
@@ -104,15 +103,11 @@ def remove_duplicates(records, title_threshold=90):
         title = rec.get("TI", "")
         title = " ".join(title) if isinstance(title, list) else str(title)
         title_key = normalize_text(title)
-
-        # Remove near-duplicates instead of only exact
         is_duplicate = False
-        # Check IDs
         for ident in (pmid, doi):
             if ident and ident in seen_ids:
                 is_duplicate = True
                 break
-        # Check title fuzzy
         if not is_duplicate:
             for t in seen_titles:
                 if fuzz.ratio(title_key, t) >= title_threshold:
