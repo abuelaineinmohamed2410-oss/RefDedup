@@ -10,42 +10,41 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Simple Clean Theme with Perfect Contrast
+# CLEAN THEME - PERFECT CONTRAST EVERYWHERE
 st.markdown("""
     <style>
-    /* Simple, clean colors */
+    /* Clean color system */
     :root {
-        --dark-bg: #1a1a1a;
-        --medium-bg: #2d2d2d;
-        --light-bg: #404040;
-        --white-text: #ffffff;
-        --light-text: #e0e0e0;
-        --accent-blue: #4a90e2;
-        --success-green: #27ae60;
-        --warning-orange: #f39c12;
-        --error-red: #e74c3c;
-        --border-gray: #555555;
+        --white: #ffffff;
+        --light-gray: #f5f5f5;
+        --medium-gray: #e0e0e0;
+        --dark-gray: #333333;
+        --black: #000000;
+        --blue: #0066cc;
+        --green: #28a745;
+        --red: #dc3545;
+        --orange: #ff9800;
     }
     
-    /* Main app background */
+    /* MAIN APP: WHITE background, BLACK text */
     .stApp {
-        background-color: var(--dark-bg);
-        color: var(--white-text);
+        background-color: var(--white) !important;
+        color: var(--black) !important;
     }
     
-    /* Sidebar */
+    /* SIDEBAR: DARK background, WHITE text */
     section[data-testid="stSidebar"] {
-        background-color: var(--medium-bg) !important;
+        background-color: var(--dark-gray) !important;
     }
     
     section[data-testid="stSidebar"] * {
-        color: var(--white-text) !important;
+        color: var(--white) !important;
     }
     
-    /* Headers */
+    /* HEADERS: BLACK text on WHITE background */
     .main-header {
         font-size: 2.5rem;
-        color: var(--white-text);
+        color: var(--black) !important;
         text-align: center;
         margin-bottom: 1rem;
         font-weight: 700;
@@ -53,7 +52,7 @@ st.markdown("""
     
     .sub-header {
         font-size: 1.1rem;
-        color: var(--light-text);
+        color: var(--black) !important;
         text-align: center;
         margin-bottom: 2rem;
         font-weight: 400;
@@ -61,19 +60,19 @@ st.markdown("""
     
     .section-header {
         font-size: 1.2rem;
-        color: var(--white-text);
+        color: var(--black) !important;
         margin-bottom: 1rem;
         font-weight: 600;
-        border-bottom: 1px solid var(--border-gray);
+        border-bottom: 2px solid var(--medium-gray);
         padding-bottom: 0.5rem;
     }
     
-    /* Prerelease badge */
+    /* PRERELEASE BADGE: ORANGE background, BLACK text */
     .prerelease-badge {
-        background-color: var(--warning-orange);
-        color: white;
-        padding: 0.3rem 0.8rem;
-        border-radius: 15px;
+        background-color: var(--orange) !important;
+        color: var(--black) !important;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
         font-size: 0.8rem;
         font-weight: 600;
         text-transform: uppercase;
@@ -83,54 +82,42 @@ st.markdown("""
         margin: 0 auto 2rem auto;
     }
     
-    /* Cards */
-    .info-box, .feature-box, .method-card, .sidebar-section, .version-info, .file-list, .download-section {
-        background-color: var(--medium-bg);
+    /* LIGHT CARDS: LIGHT background, BLACK text */
+    .info-box, .feature-box, .method-card, .file-list, .metric-card, .download-section {
+        background-color: var(--light-gray) !important;
+        color: var(--black) !important;
         padding: 1.2rem;
         border-radius: 8px;
-        border: 1px solid var(--border-gray);
+        border: 1px solid var(--medium-gray);
         margin: 1rem 0;
     }
     
-    .info-box h4, .feature-box h4 {
-        color: var(--accent-blue);
-        margin-bottom: 0.8rem;
+    /* ALL TEXT IN LIGHT CARDS: BLACK */
+    .info-box *, .feature-box *, .method-card *, .file-list *, .metric-card *, .download-section * {
+        color: var(--black) !important;
+    }
+    
+    /* ACCENT COLORS for headers in cards */
+    .info-box h4, .feature-box h4, .method-title, .download-section h4 {
+        color: var(--blue) !important;
+        margin-bottom: 1rem;
         font-weight: 600;
     }
     
-    .method-title {
-        color: var(--accent-blue);
-        font-weight: 600;
-        margin-bottom: 0.8rem;
+    /* SIDEBAR CARDS: DARKER background, WHITE text */
+    .sidebar-section, .version-info {
+        background-color: #555555 !important;
+        color: var(--white) !important;
+        padding: 1rem;
+        border-radius: 6px;
+        margin: 1rem 0;
     }
     
-    .info-box p, .info-box li,
-    .feature-box p, .feature-box li,
-    .method-card p,
-    .sidebar-section p, .sidebar-section li,
-    .download-section p {
-        color: var(--light-text);
-        line-height: 1.5;
+    .sidebar-section *, .version-info * {
+        color: var(--white) !important;
     }
     
-    .version-info p, .file-list p {
-        color: var(--white-text);
-        margin: 0.2rem 0;
-    }
-    
-    .file-list span {
-        color: var(--light-text);
-    }
-    
-    /* Metric cards */
-    .metric-card {
-        background-color: var(--medium-bg);
-        padding: 1.5rem;
-        border-radius: 8px;
-        border: 1px solid var(--border-gray);
-        text-align: center;
-    }
-    
+    /* METRIC VALUES: Colored numbers */
     .metric-value {
         font-size: 2rem;
         font-weight: 700;
@@ -138,52 +125,94 @@ st.markdown("""
     }
     
     .metric-label {
+        color: #666666 !important;
         font-size: 0.9rem;
-        color: var(--light-text);
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        font-weight: 500;
     }
     
-    /* Messages */
+    /* SUCCESS MESSAGE: GREEN background, WHITE text */
     .success-message {
-        background-color: var(--success-green);
-        color: white;
+        background-color: var(--green) !important;
+        color: var(--white) !important;
         padding: 1rem;
-        border-radius: 6px;
+        border-radius: 8px;
         font-weight: 500;
         margin: 1rem 0;
     }
     
+    .success-message * {
+        color: var(--white) !important;
+    }
+    
+    /* ERROR MESSAGE: RED background, WHITE text */
     .error-message {
-        background-color: var(--error-red);
-        color: white;
+        background-color: var(--red) !important;
+        color: var(--white) !important;
         padding: 1rem;
-        border-radius: 6px;
+        border-radius: 8px;
         font-weight: 500;
         margin: 1rem 0;
     }
     
-    /* Footer */
+    .error-message * {
+        color: var(--white) !important;
+    }
+    
+    /* FOOTER: BLACK text on WHITE background */
     .footer-text {
         text-align: center;
-        color: var(--light-text);
+        color: #666666 !important;
         font-style: italic;
         margin-top: 2rem;
         padding: 1rem;
-        border-top: 1px solid var(--border-gray);
+        border-top: 1px solid var(--medium-gray);
     }
     
-    /* Streamlit overrides only where necessary */
+    /* STREAMLIT OVERRIDES */
     .stFileUploader label {
-        color: var(--white-text) !important;
+        color: var(--black) !important;
     }
     
     .stSlider label {
-        color: var(--white-text) !important;
+        color: var(--white) !important;
     }
     
+    /* ALL HEADERS: BLACK text */
     h1, h2, h3, h4, h5, h6 {
-        color: var(--white-text);
+        color: var(--black) !important;
+    }
+    
+    /* MAIN TEXT: BLACK */
+    .stMarkdown {
+        color: var(--black) !important;
+    }
+    
+    p {
+        color: var(--black) !important;
+    }
+    
+    /* HOVER EFFECTS */
+    .metric-card:hover, .method-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
+    }
+    
+    /* Force all Streamlit text to be readable */
+    .stApp * {
+        color: var(--black) !important;
+    }
+    
+    /* Override only sidebar */
+    section[data-testid="stSidebar"] * {
+        color: var(--white) !important;
+    }
+    
+    /* Override success/error messages */
+    .success-message *, .error-message * {
+        color: var(--white) !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -197,7 +226,7 @@ st.markdown('<div class="prerelease-badge">Prerelease Version</div>', unsafe_all
 
 # Sidebar configuration
 with st.sidebar:
-    st.markdown('<h3 class="section-header">Configuration</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 style="color: white !important; margin-bottom: 1rem; font-weight: 600; border-bottom: 2px solid #666; padding-bottom: 0.5rem;">Configuration</h3>', unsafe_allow_html=True)
     
     # Title similarity threshold
     title_threshold = st.slider(
@@ -212,7 +241,7 @@ with st.sidebar:
     st.markdown("---")
     
     # Information section
-    st.markdown('<h3 class="section-header">Detection Methods</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 style="color: white !important; margin-bottom: 1rem; font-weight: 600; border-bottom: 2px solid #666; padding-bottom: 0.5rem;">Detection Methods</h3>', unsafe_allow_html=True)
     st.markdown("""
     <div class="sidebar-section">
         <p><strong>Priority order:</strong></p>
@@ -260,7 +289,7 @@ with col1:
         st.markdown('<h4 class="section-header">Uploaded Files</h4>', unsafe_allow_html=True)
         files_html = '<div class="file-list">'
         for i, file in enumerate(uploaded_files, 1):
-            files_html += f'<p><strong>{i}.</strong> {file.name} <span>({file.size:,} bytes)</span></p>'
+            files_html += f'<p><strong>{i}.</strong> {file.name} <span style="color: #666 !important;">({file.size:,} bytes)</span></p>'
         files_html += '</div>'
         st.markdown(files_html, unsafe_allow_html=True)
 
@@ -331,7 +360,7 @@ if uploaded_files:
                 with col1:
                     st.markdown("""
                     <div class="metric-card">
-                        <div class="metric-value" style="color: #4a90e2;">{}</div>
+                        <div class="metric-value" style="color: #0066cc !important;">{}</div>
                         <div class="metric-label">Original Records</div>
                     </div>
                     """.format(total_before), unsafe_allow_html=True)
@@ -339,7 +368,7 @@ if uploaded_files:
                 with col2:
                     st.markdown("""
                     <div class="metric-card">
-                        <div class="metric-value" style="color: #27ae60;">{}</div>
+                        <div class="metric-value" style="color: #28a745 !important;">{}</div>
                         <div class="metric-label">Final Records</div>
                     </div>
                     """.format(total_after), unsafe_allow_html=True)
@@ -348,7 +377,7 @@ if uploaded_files:
                     duplicates_removed = total_before - total_after
                     st.markdown("""
                     <div class="metric-card">
-                        <div class="metric-value" style="color: #e74c3c;">{}</div>
+                        <div class="metric-value" style="color: #dc3545 !important;">{}</div>
                         <div class="metric-label">Duplicates Found</div>
                     </div>
                     """.format(duplicates_removed), unsafe_allow_html=True)
@@ -360,7 +389,7 @@ if uploaded_files:
                         reduction_percent = 0
                     st.markdown("""
                     <div class="metric-card">
-                        <div class="metric-value" style="color: #f39c12;">{:.1f}%</div>
+                        <div class="metric-value" style="color: #ff9800 !important;">{:.1f}%</div>
                         <div class="metric-label">Reduction</div>
                     </div>
                     """.format(reduction_percent), unsafe_allow_html=True)
@@ -389,7 +418,7 @@ if uploaded_files:
                 # Download section
                 st.markdown("""
                 <div class="download-section">
-                    <h4 style="color: white; margin-bottom: 1rem;">Download Results</h4>
+                    <h4>Download Results</h4>
                     <p>Two files are available for download:</p>
                 """, unsafe_allow_html=True)
                 
