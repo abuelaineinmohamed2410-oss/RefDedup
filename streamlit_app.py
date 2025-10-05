@@ -1,99 +1,68 @@
 import streamlit as st
-from dedup import process_uploaded_files, record_to_ris  
+from dedup import process_uploaded_files, record_to_ris
 
-# ---------------- Page Config ---------------- #
 st.set_page_config(
-    page_title="RefDedup - Duplicate Checker Removal",
-    page_icon="logo.png",  
+    page_title="RefDedup - Duplicate Removal for SR",
+    page_icon=None,
     layout="centered"
 )
 
-# ---------------- Custom CSS ---------------- #
 st.markdown(
     """
     <style>
-    /* Page background */
-    .stApp {
-        background-color: white;
-    }
-    /* Header rectangle */
-    .header-box {
-        background-color: #0B3D91;  /* Dark blue */
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
-    }
-    /* Header text */
-    .header-box h1 {
-        color: white;
-        margin: 0;
-    }
-    .header-box h4 {
-        color: orange;
-        margin: 0;
-    }
-    /* Other texts */
-    .stText, .stMarkdown {
-        color: black;
-    }
+    .stApp { background: #fff; }
+    .header { background-color: #1a3d76; padding: 18px 0; border-radius: 8px; text-align:center; }
+    .header h1 { color: white; font-size: 2.2em; margin-bottom: 7px; }
+    .header h4 { color: #FFA000; margin-top: 0; }
+    .stText, .stMarkdown, .stTable { color: #111; }
     </style>
-    """, unsafe_allow_html=True
+    """, unsafe_allow_html=True,
 )
 
-# ---------------- Header ---------------- #
 st.markdown(
     """
-    <div class="header-box">
-        <h1>RefDedup - Duplicate Checker Removal</h1>
-        <h4>A Pre Release Version</h4>
+    <div class='header'>
+        <h1>RefDedup</h1>
+        <h4>Reference Duplicate Remover for Systematic Reviews</h4>
     </div>
-    """,
-    unsafe_allow_html=True
+    """, unsafe_allow_html=True
+)
+st.write(
+    "Upload your **RIS** or **NBIB** files below. RefDedup removes near-duplicate references based on Title, DOI, and PMID, streamlining the initial screening for systematic reviews."
 )
 
-st.write("Upload your RIS or NBIB files below to remove duplicates based on Title, DOI AND PMID.")
-
-# ---------------- File Uploader ---------------- #
 uploaded_files = st.file_uploader(
-    "Upload RIS/NBIB files",
+    "Upload files (.ris, .nbib)",
     type=["ris", "nbib"],
     accept_multiple_files=True
 )
 
-# ---------------- Processing ---------------- #
 if uploaded_files:
-    st.info("Processing files... This may take a few seconds.")
+    with st.spinner("Removing duplicates..."):
+        try:
+            cleaned_records, total_before, total_after = process_uploaded_files(uploaded_files, title_threshold=91)
+            cleaned_content = "
 
-    try:
-        cleaned_records, total_before, total_after = process_uploaded_files(uploaded_files, title_threshold=90)
+".join([record_to_ris(rec) for rec in cleaned_records])
+            st.success("Deduplication completed.")
+            st.write(f"Total records uploaded: **{total_before}**")
+            st.write(f"Total unique references: **{total_after}**")
+            st.download_button(
+                label="Download Cleaned RIS",
+                data=cleaned_content,
+                file_name="deduplicated_references.ris",
+                mime="text/plain"
+            )
+        except Exception as e:
+            st.error(f"Error during deduplication: {e}")
 
-        # Generate cleaned RIS content
-        cleaned_content = "\n\n".join([record_to_ris(rec) for rec in cleaned_records])
-
-        # Show results
-        st.success("Processing complete!")
-        st.write(f"**Total records before deduplication:** {total_before}")
-        st.write(f"**Total records after deduplication:** {total_after}")
-
-        # Download button
-        st.download_button(
-            label="Download Cleaned RIS File",
-            data=cleaned_content,
-            file_name="cleaned_references.ris",
-            mime="text/plain"
-        )
-
-    except Exception as e:
-        st.error(f"An error occurred during processing: {e}")
-
-# ---------------- Sidebar ---------------- #
-st.sidebar.header("About RefDedup")
+st.sidebar.header("About")
 st.sidebar.write(
     """
     **RefDedup**  
-    Developed by **Mohamed Abu Elainein**  
+    Created by Mohamed Abu Elainein
 
-    Remove duplicate references from **RIS** and **NBIB** files  
-    based on **Title, DOI AND PMID**.
+    Removes duplicates from RIS and NBIB files  
+    using Titles, DOIs and PMIDs.
     """
 )
