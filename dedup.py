@@ -5,7 +5,7 @@ from rapidfuzz import fuzz
 
 
 def normalize_text(text: str) -> str:
-    """Normalize text for comparison by removing accents, punctuation, and case differences."""
+    """Normalize text for comparison - more conservative approach."""
     if not isinstance(text, str):
         text = str(text)
     
@@ -13,11 +13,11 @@ def normalize_text(text: str) -> str:
     text = unicodedata.normalize('NFKD', text)
     text = text.encode('ascii', 'ignore').decode('utf-8')
     
-    # Remove extra whitespace and convert to lowercase
+    # Convert to lowercase and clean whitespace
     text = re.sub(r'\s+', ' ', text).strip().lower()
     
-    # Remove common punctuation that might interfere with matching
-    text = re.sub(r'[^\w\s]', ' ', text)
+    # Only remove basic punctuation, keep more structure
+    text = re.sub(r'[^\w\s\-\(\)\[\]]', ' ', text)
     text = re.sub(r'\s+', ' ', text).strip()
     
     return text
@@ -35,11 +35,11 @@ def extract_doi_from_record(record: Dict[str, Any]) -> str:
                 for v in value:
                     doi = extract_doi_from_text(str(v))
                     if doi:
-                        return doi
+                        return doi.lower()  # Normalize DOI case
             else:
                 doi = extract_doi_from_text(str(value))
                 if doi:
-                    return doi
+                    return doi.lower()  # Normalize DOI case
     return ""
 
 
@@ -48,12 +48,12 @@ def extract_doi_from_text(text: str) -> str:
     if not text:
         return ""
     
-    # Common DOI patterns
+    # More specific DOI patterns to avoid false matches
     doi_patterns = [
-        r'10\.\d{4,}[^\s]*',  # Standard DOI pattern
-        r'doi:\s*10\.\d{4,}[^\s]*',  # DOI with prefix
-        r'https?://doi\.org/10\.\d{4,}[^\s]*',  # DOI URL
-        r'https?://dx\.doi\.org/10\.\d{4,}[^\s]*'  # Alternative DOI URL
+        r'10\.\d{4,9}/[^\s]+',  # Standard DOI pattern - more specific
+        r'doi:\s*10\.\d{4,9}/[^\s]+',  # DOI with prefix
+        r'https?://doi\.org/10\.\d{4,9}/[^\s]+',  # DOI URL
+        r'https?://dx\.doi\.org/10\.\d{4,9}/[^\s]+'  # Alternative DOI URL
     ]
     
     for pattern in doi_patterns:
@@ -62,7 +62,52 @@ def extract_doi_from_text(text: str) -> str:
             doi = match.group(0)
             # Clean up the DOI
             doi = re.sub(r'^(doi:\s*|https?://d?x?\.?doi\.org/)', '', doi, flags=re.IGNORECASE)
+            # Remove trailing punctuation that might not be part of DOI
+            doi = re.sub(r'[.,;)\]}]+$', '', doi)
             return doi.strip()
+    
+    return ""
+
+
+def extract_pmid_from_record(record: Dict[str, Any]) -> str:
+    """Extract PMID more carefully."""
+    # Fields that might contain PMID
+    pmid_fields = ['PMID', 'M3', 'AID', 'AN']
+    
+    for field in pmid_fields:
+        if field in record:
+            value = record[field]
+            if isinstance(value, list):
+                for v in value:
+                    pmid = extract_pmid_from_text(str(v))
+                    if pmid:
+                        return pmid
+            else:
+                pmid = extract_pmid_from_text(str(value))
+                if pmid:
+                    return pmid
+    return ""
+
+
+def extract_pmid_from_text(text: str) -> str:
+    """Extract PMID from text."""
+    if not text:
+        return ""
+    
+    # PMID patterns
+    pmid_patterns = [
+        r'\b(\d{7,8})\b',  # 7-8 digit numbers (typical PMID range)
+        r'pmid:\s*(\d{7,8})',  # PMID with prefix
+        r'pubmed/(\d{7,8})'  # PubMed URL format
+    ]
+    
+    for pattern in pmid_patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            pmid = match.group(1) if match.groups() else match.group(0)
+            # Validate PMID range (should be reasonable)
+            if pmid.isdigit() and 1000000 <= int(pmid) <= 99999999:
+                return pmid
     
     return ""
 
@@ -199,55 +244,99 @@ def get_title_from_record(record: Dict[str, Any]) -> str:
     return ""
 
 
-def remove_duplicates(records: List[Dict[str, Any]], title_threshold: int = 90) -> List[Dict[str, Any]]:
-    """Remove duplicate records using DOI, PMID, and fuzzy title matching."""
+def are_titles_similar(title1: str, title2: str, threshold: int = 90) -> Tuple[bool, int]:
+    """Check if two titles are similar with more conservative matching."""
+    if not title1 or not title2:
+        return False, 0
+    
+    norm_title1 = normalize_text(title1)
+    norm_title2 = normalize_text(title2)
+    
+    # If titles are too short, be more conservative
+    if len(norm_title1) < 20 or len(norm_title2) < 20:
+        threshold = min(95, threshold + 5)
+    
+    # Calculate similarity
+    similarity = fuzz.ratio(norm_title1, norm_title2)
+    
+    # Additional check: if titles are very different in length, be more conservative
+    len_diff = abs(len(norm_title1) - len(norm_title2))
+    if len_diff > max(len(norm_title1), len(norm_title2)) * 0.3:
+        threshold += 5
+    
+    return similarity >= threshold, similarity
+
+
+def remove_duplicates(records: List[Dict[str, Any]], title_threshold: int = 95) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """Remove duplicate records using DOI, PMID, and fuzzy title matching.
+    Returns (cleaned_records, removed_records) for analysis."""
     if not records:
-        return []
+        return [], []
     
     cleaned = []
-    seen_titles = set()
-    seen_dois = set()
-    seen_pmids = set()
+    removed = []
+    seen_titles = {}  # Store title -> record mapping for debugging
+    seen_dois = {}
+    seen_pmids = {}
     
-    for record in records:
+    for i, record in enumerate(records):
         # Extract identifiers
-        pmid = str(record.get("PMID", "")).strip()
+        pmid = extract_pmid_from_record(record)
         doi = extract_doi_from_record(record)
         title = get_title_from_record(record)
         title_normalized = normalize_text(title)
         
         is_duplicate = False
+        duplicate_reason = ""
+        matching_record_index = -1
         
-        # Check for exact ID matches first (most reliable)
+        # Check for exact DOI matches first (most reliable)
         if doi and doi in seen_dois:
             is_duplicate = True
+            duplicate_reason = f"DOI match: {doi}"
+            matching_record_index = seen_dois[doi]
+        
+        # Check for exact PMID matches
         elif pmid and pmid in seen_pmids:
             is_duplicate = True
+            duplicate_reason = f"PMID match: {pmid}"
+            matching_record_index = seen_pmids[pmid]
         
         # Check title similarity only if no exact ID match
-        if not is_duplicate and title_normalized:
-            for seen_title in seen_titles:
-                similarity = fuzz.ratio(title_normalized, seen_title)
-                if similarity >= title_threshold:
+        elif title_normalized and len(title_normalized) > 10:  # Only for meaningful titles
+            for seen_title, seen_index in seen_titles.items():
+                is_similar, similarity_score = are_titles_similar(title_normalized, seen_title, title_threshold)
+                if is_similar:
                     is_duplicate = True
+                    duplicate_reason = f"Title similarity: {similarity_score}% with record {seen_index + 1}"
+                    matching_record_index = seen_index
                     break
         
         # Add record if not duplicate and has valid title
         if not is_duplicate and title_normalized:
+            record_index = len(cleaned)
             cleaned.append(record)
             
             # Remember this record's identifiers
             if doi:
-                seen_dois.add(doi)
+                seen_dois[doi] = record_index
             if pmid:
-                seen_pmids.add(pmid)
-            seen_titles.add(title_normalized)
+                seen_pmids[pmid] = record_index
+            if title_normalized:
+                seen_titles[title_normalized] = record_index
+        else:
+            # Store information about why this record was removed
+            record['_duplicate_reason'] = duplicate_reason
+            record['_original_index'] = i + 1
+            record['_matching_record'] = matching_record_index + 1 if matching_record_index >= 0 else -1
+            removed.append(record)
     
-    return cleaned
+    return cleaned, removed
 
 
-def process_uploaded_files(uploaded_files, title_threshold: int = 90) -> Tuple[List[Dict[str, Any]], int, int, Dict[str, int]]:
-    """Process uploaded NBIB or RIS files and remove duplicates."""
+def process_uploaded_files(uploaded_files, title_threshold: int = 95) -> Tuple[List[Dict[str, Any]], int, int, Dict[str, int], List[Dict[str, Any]]]:
+    """Process uploaded NBIB or RIS files and remove duplicates.
+    Returns (cleaned_records, total_before, total_after, file_stats, removed_records)."""
     all_records = []
     file_stats = {}
     
@@ -272,7 +361,7 @@ def process_uploaded_files(uploaded_files, title_threshold: int = 90) -> Tuple[L
             continue
     
     total_before = len(all_records)
-    cleaned_records = remove_duplicates(all_records, title_threshold=title_threshold)
+    cleaned_records, removed_records = remove_duplicates(all_records, title_threshold=title_threshold)
     total_after = len(cleaned_records)
     
-    return cleaned_records, total_before, total_after, file_stats
+    return cleaned_records, total_before, total_after, file_stats, removed_records
