@@ -56,15 +56,6 @@ st.markdown("""
         box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     }
     
-    .warning-box {
-        background-color: #fff3cd;
-        padding: 1.5rem;
-        border-radius: 8px;
-        border-left: 4px solid #ffc107;
-        margin: 1rem 0;
-        color: #856404;
-    }
-    
     .feature-box {
         background-color: #ffffff;
         padding: 1.5rem;
@@ -114,14 +105,6 @@ st.markdown("""
         font-weight: 500;
     }
     
-    .debug-section {
-        background-color: #f8f9fa;
-        padding: 1.5rem;
-        border-radius: 8px;
-        border-left: 4px solid #6c757d;
-        margin: 1.5rem 0;
-    }
-    
     .sidebar-section {
         background-color: #f8f9fa;
         padding: 1rem;
@@ -164,6 +147,13 @@ st.markdown("""
         border-left: 4px solid #27ae60;
         margin: 1.5rem 0;
     }
+    
+    .download-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -182,30 +172,8 @@ with st.sidebar:
         max_value=100,
         value=95,
         step=1,
-        help="Higher values are more conservative. 95% recommended to match manual screening accuracy."
+        help="Higher values are more conservative. 95% recommended for optimal results."
     )
-    
-    # Show debug information toggle
-    show_debug = st.checkbox(
-        "Show removed records analysis",
-        value=False,
-        help="Display detailed information about which records were removed and why"
-    )
-    
-    st.markdown("---")
-    
-    # Accuracy information
-    st.markdown("""
-    <div class="sidebar-section">
-        <h4>Accuracy Notes</h4>
-        <p><strong>Conservative settings:</strong></p>
-        <ul>
-            <li>95%+ threshold matches manual screening</li>
-            <li>Exact DOI/PMID matching only</li>
-            <li>Short titles get higher thresholds</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
     
     st.markdown("---")
     
@@ -258,20 +226,17 @@ with col1:
         st.markdown(files_html, unsafe_allow_html=True)
 
 with col2:
-    # Accuracy comparison box
+    # Features box
     st.markdown("""
     <div class="feature-box">
-        <h4 style="color: #2c3e50; margin-bottom: 1rem;">Accuracy Settings</h4>
-        <p><strong>Current threshold: Conservative</strong></p>
+        <h4 style="color: #2c3e50; margin-bottom: 1rem;">Key Features</h4>
         <ul style="list-style-type: none; padding-left: 0;">
-            <li style="margin-bottom: 0.5rem;">• 95%+ title similarity (recommended)</li>
-            <li style="margin-bottom: 0.5rem;">• Exact DOI/PMID matching only</li>
-            <li style="margin-bottom: 0.5rem;">• Enhanced validation for short titles</li>
-            <li style="margin-bottom: 0.5rem;">• Reduced false positive rate</li>
+            <li style="margin-bottom: 0.5rem;">• Multiple file format support</li>
+            <li style="margin-bottom: 0.5rem;">• Intelligent duplicate detection</li>
+            <li style="margin-bottom: 0.5rem;">• Conservative similarity matching</li>
+            <li style="margin-bottom: 0.5rem;">• Dual output files (clean + duplicates)</li>
+            <li style="margin-bottom: 0.5rem;">• Professional interface design</li>
         </ul>
-        <p style="font-size: 0.9rem; color: #7f8c8d; margin-top: 1rem;">
-            Optimized to match manual screening accuracy
-        </p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -301,7 +266,7 @@ if uploaded_files:
                 progress_bar.progress(60)
                 time.sleep(0.3)
                 
-                status_text.text("Detecting duplicates with conservative matching...")
+                status_text.text("Detecting duplicates...")
                 progress_bar.progress(80)
                 
                 # Process the files with the updated function
@@ -345,7 +310,7 @@ if uploaded_files:
                     st.markdown("""
                     <div class="metric-card">
                         <div class="metric-value" style="color: #e74c3c;">{}</div>
-                        <div class="metric-label">Duplicates Removed</div>
+                        <div class="metric-label">Duplicates Found</div>
                     </div>
                     """.format(duplicates_removed), unsafe_allow_html=True)
                 
@@ -361,99 +326,62 @@ if uploaded_files:
                     </div>
                     """.format(reduction_percent), unsafe_allow_html=True)
                 
-                # Accuracy comparison with manual screening
-                if total_after != 559:  # Expected manual screening result
-                    difference = abs(total_after - 559)
-                    if total_after < 559:
-                        st.markdown(f"""
-                        <div class="warning-box">
-                            <strong>Accuracy Note:</strong> Tool found {total_after} records vs. expected ~559 from manual screening.<br>
-                            Difference: {difference} records (tool may be slightly more aggressive).<br>
-                            Consider increasing threshold to 96-98% if results seem too aggressive.
-                        </div>
-                        """, unsafe_allow_html=True)
-                    else:
-                        st.markdown(f"""
-                        <div class="info-box">
-                            <strong>Accuracy Note:</strong> Tool found {total_after} records vs. expected ~559 from manual screening.<br>
-                            Difference: {difference} records (tool may be slightly more conservative).
-                        </div>
-                        """, unsafe_allow_html=True)
-                else:
-                    st.markdown("""
-                    <div class="success-message">
-                        <strong>Excellent accuracy!</strong> Results match expected manual screening outcome (~559 records).
-                    </div>
-                    """, unsafe_allow_html=True)
+                # Success message
+                st.markdown("""
+                <div class="success-message">
+                    <strong>Processing completed successfully</strong><br>
+                    Your cleaned references and duplicate records are ready for download.
+                </div>
+                """, unsafe_allow_html=True)
                 
-                # Debug information
-                if show_debug and removed_records:
-                    st.markdown('<h4 class="section-header">Removed Records Analysis</h4>', unsafe_allow_html=True)
-                    
-                    # Create DataFrame of removed records for analysis
-                    debug_data = []
+                # Generate output files
+                cleaned_content = "\n\n".join([record_to_ris(rec) for rec in cleaned_records])
+                
+                # Generate duplicates file
+                duplicates_content = ""
+                if removed_records:
+                    duplicates_ris = []
                     for record in removed_records:
-                        title = record.get('TI', record.get('T1', 'No title'))
-                        if isinstance(title, list):
-                            title = " ".join(title)
-                        
-                        debug_data.append({
-                            'Original Index': record.get('_original_index', ''),
-                            'Title': title[:100] + '...' if len(str(title)) > 100 else title,
-                            'Reason': record.get('_duplicate_reason', 'Unknown'),
-                            'Matches Record': record.get('_matching_record', '')
-                        })
-                    
-                    if debug_data:
-                        debug_df = pd.DataFrame(debug_data)
-                        st.dataframe(debug_df, use_container_width=True, hide_index=True)
-                        
-                        # Summary of removal reasons
-                        reason_counts = {}
-                        for record in removed_records:
-                            reason = record.get('_duplicate_reason', 'Unknown')
-                            reason_type = reason.split(':')[0]
-                            reason_counts[reason_type] = reason_counts.get(reason_type, 0) + 1
-                        
-                        st.markdown("**Removal Summary:**")
-                        for reason, count in reason_counts.items():
-                            st.write(f"• {reason}: {count} records")
-                
-                # File breakdown for multiple files
-                if len(file_stats) > 1:
-                    st.markdown('<h4 class="section-header">File Breakdown</h4>', unsafe_allow_html=True)
-                    
-                    file_df = pd.DataFrame([
-                        {"File Name": name, "Records": count}
-                        for name, count in file_stats.items()
-                        if isinstance(count, int)
-                    ])
-                    
-                    if not file_df.empty:
-                        st.dataframe(file_df, use_container_width=True, hide_index=True)
-                
-                # Generate output
-                output_content = "\n\n".join([record_to_ris(rec) for rec in cleaned_records])
+                        # Remove the debugging fields before converting to RIS
+                        clean_record = {k: v for k, v in record.items() if not k.startswith('_')}
+                        duplicates_ris.append(record_to_ris(clean_record))
+                    duplicates_content = "\n\n".join(duplicates_ris)
                 
                 # Download section
                 st.markdown("""
                 <div class="download-section">
                     <h4 style="color: #2c3e50; margin-bottom: 1rem;">Download Results</h4>
+                    <p>Two files are available for download:</p>
                 """, unsafe_allow_html=True)
                 
-                col1, col2 = st.columns([3, 1])
+                # Two download buttons side by side
+                col1, col2 = st.columns(2)
+                
                 with col1:
                     st.download_button(
-                        label="Download Cleaned References (RIS)",
-                        data=output_content,
-                        file_name=f"deduplicated_references_{len(cleaned_records)}_records.ris",
+                        label="Download Cleaned References",
+                        data=cleaned_content,
+                        file_name=f"cleaned_references_{total_after}_records.ris",
                         mime="text/plain",
                         type="primary",
-                        use_container_width=True
+                        use_container_width=True,
+                        help=f"Contains {total_after} unique references"
                     )
+                    st.write(f"**File size:** {len(cleaned_content.encode('utf-8')):,} bytes")
                 
                 with col2:
-                    st.metric("File Size", f"{len(output_content.encode('utf-8')):,} bytes")
+                    if duplicates_content:
+                        st.download_button(
+                            label="Download Duplicate Records",
+                            data=duplicates_content,
+                            file_name=f"duplicate_records_{duplicates_removed}_found.ris",
+                            mime="text/plain",
+                            use_container_width=True,
+                            help=f"Contains {duplicates_removed} duplicate references for review"
+                        )
+                        st.write(f"**File size:** {len(duplicates_content.encode('utf-8')):,} bytes")
+                    else:
+                        st.info("No duplicates found")
                 
                 st.markdown('</div>', unsafe_allow_html=True)
                 
@@ -472,10 +400,9 @@ else:
         <h4 style="color: #2c3e50;">How to Use RefDedup</h4>
         <ol>
             <li><strong>Upload Files:</strong> Select your RIS or NBIB reference files using the file uploader above</li>
-            <li><strong>Configure Settings:</strong> Adjust the similarity threshold in the sidebar (95% recommended for accuracy)</li>
+            <li><strong>Configure Settings:</strong> Adjust the similarity threshold in the sidebar (95% recommended)</li>
             <li><strong>Process:</strong> Click the "Process Files" button to identify and remove duplicates</li>
-            <li><strong>Review:</strong> Check the accuracy comparison and debug information if needed</li>
-            <li><strong>Download:</strong> Download your cleaned reference file in RIS format</li>
+            <li><strong>Download:</strong> Get two RIS files - cleaned references and duplicate records</li>
         </ol>
     </div>
     """, unsafe_allow_html=True)
@@ -488,7 +415,7 @@ else:
         st.markdown("""
         <div class="method-card">
             <div class="method-title">DOI Matching (Priority 1)</div>
-            <p>Exact matching of Digital Object Identifiers. Most reliable method with enhanced pattern recognition for various DOI formats.</p>
+            <p>Exact matching of Digital Object Identifiers. Most reliable method with enhanced pattern recognition.</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -496,7 +423,7 @@ else:
         st.markdown("""
         <div class="method-card">
             <div class="method-title">PMID Matching (Priority 2)</div>
-            <p>Exact matching of PubMed IDs with validation (7-8 digits, reasonable range). Highly accurate for medical literature.</p>
+            <p>Exact matching of PubMed IDs with validation. Highly accurate for medical literature.</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -504,10 +431,10 @@ else:
         st.markdown("""
         <div class="method-card">
             <div class="method-title">Title Similarity (Priority 3)</div>
-            <p>Conservative fuzzy matching with length-based adjustments. Higher thresholds for short titles to reduce false positives.</p>
+            <p>Conservative fuzzy matching with adjustable thresholds to minimize false positives.</p>
         </div>
         """, unsafe_allow_html=True)
 
 # Footer
 st.markdown("---")
-st.markdown("*RefDedup v2.1 - Enhanced accuracy to match manual screening standards*")
+st.markdown("*RefDedup v2.1 - Professional duplicate removal with dual output files*")
