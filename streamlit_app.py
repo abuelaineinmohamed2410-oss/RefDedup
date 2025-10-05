@@ -10,458 +10,265 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Clean CSS without dashed borders
+# Clean Professional Dark Blue Theme
 st.markdown("""
     <style>
-    /* Global theme colors */
+    /* Professional color palette */
     :root {
-        --primary-dark-blue: #1a365d;
-        --secondary-blue: #2c5282;
-        --accent-blue: #3182ce;
-        --light-blue: #4299e1;
-        --text-primary: #ffffff;
-        --text-secondary: #e2e8f0;
-        --text-muted: #cbd5e0;
-        --bg-primary: #0f172a;
-        --bg-secondary: #1e293b;
-        --bg-card: #334155;
-        --border-color: #475569;
-        --success-color: #10b981;
-        --warning-color: #f59e0b;
-        --error-color: #ef4444;
+        --navy-primary: #1e3a8a;
+        --navy-secondary: #1e40af;
+        --navy-light: #3b82f6;
+        --slate-dark: #0f172a;
+        --slate-medium: #1e293b;
+        --slate-light: #334155;
+        --text-white: #ffffff;
+        --text-light: #e2e8f0;
+        --text-dark: #1f2937;
+        --success: #059669;
+        --warning: #d97706;
+        --error: #dc2626;
+        --border-light: #e5e7eb;
+        --border-dark: #374151;
     }
     
-    /* Override Streamlit's default styling */
+    /* Main app background */
     .stApp {
-        background: linear-gradient(135deg, var(--bg-primary) 0%, var(--primary-dark-blue) 100%) !important;
-        color: var(--text-primary) !important;
+        background: linear-gradient(135deg, var(--slate-dark) 0%, var(--navy-primary) 100%);
+        color: var(--text-white);
     }
     
-    /* Sidebar styling */
+    /* Sidebar */
     section[data-testid="stSidebar"] {
-        background-color: var(--bg-secondary) !important;
+        background-color: var(--slate-medium) !important;
     }
     
     section[data-testid="stSidebar"] * {
-        color: var(--text-primary) !important;
+        color: var(--text-white) !important;
     }
     
-    /* File uploader - CLEAN SOLID BORDERS */
-    .stFileUploader,
-    .stFileUploader *,
-    .stFileUploader div,
-    .stFileUploader p,
-    .stFileUploader span,
-    .stFileUploader small,
-    div[data-testid="stFileUploaderDropzone"],
-    div[data-testid="stFileUploaderDropzone"] *,
-    div[data-testid="stFileUploaderDropzone"] div,
-    div[data-testid="stFileUploaderDropzone"] p,
-    div[data-testid="stFileUploaderDropzone"] span,
-    div[data-testid="stFileUploaderDropzone"] small {
-        background-color: var(--bg-card) !important;
-        background: var(--bg-card) !important;
-        color: var(--text-primary) !important;
-        border: 1px solid var(--border-color) !important;
-        border-radius: 12px !important;
-    }
-    
-    /* Clean button styling */
-    button,
-    .stButton button,
-    .stDownloadButton button,
-    button[kind="primary"],
-    button[kind="secondary"],
-    button[data-testid*="download"],
-    button[data-testid*="button"] {
-        background: linear-gradient(45deg, var(--success-color), #34d399) !important;
-        border: none !important;
-        border-radius: 10px !important;
-        color: white !important;
-        font-weight: 600 !important;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3) !important;
-    }
-    
-    button:hover,
-    .stButton button:hover,
-    .stDownloadButton button:hover,
-    button[kind="primary"]:hover,
-    button[kind="secondary"]:hover,
-    button[data-testid*="download"]:hover,
-    button[data-testid*="button"]:hover {
-        background: linear-gradient(45deg, #34d399, #6ee7b7) !important;
-        color: white !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.4) !important;
-    }
-    
-    /* Process button specific */
-    button[kind="primary"] {
-        background: linear-gradient(45deg, var(--accent-blue), var(--light-blue)) !important;
-    }
-    
-    button[kind="primary"]:hover {
-        background: linear-gradient(45deg, var(--light-blue), #60a5fa) !important;
-    }
-    
-    /* Force white text on ALL buttons */
-    button *,
-    .stButton button *,
-    .stDownloadButton button *,
-    button[kind="primary"] *,
-    button[kind="secondary"] *,
-    button[data-testid*="download"] *,
-    button[data-testid*="button"] * {
-        color: white !important;
-    }
-    
+    /* Headers */
     .main-header {
-        font-size: 3.2rem;
-        color: var(--text-primary);
+        font-size: 3rem;
+        color: var(--text-white);
         text-align: center;
-        margin-bottom: 0.5rem;
+        margin-bottom: 1rem;
         font-weight: 700;
-        letter-spacing: -1px;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        background: linear-gradient(45deg, #ffffff, #60a5fa);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     
     .sub-header {
-        font-size: 1.2rem;
-        color: var(--text-secondary);
+        font-size: 1.1rem;
+        color: var(--text-light);
         text-align: center;
-        margin-bottom: 2.5rem;
+        margin-bottom: 2rem;
         font-weight: 400;
     }
     
     .section-header {
-        font-size: 1.4rem;
-        color: var(--text-primary);
+        font-size: 1.3rem;
+        color: var(--text-white);
         margin-bottom: 1rem;
         font-weight: 600;
-        border-bottom: 2px solid var(--accent-blue);
+        border-bottom: 2px solid var(--navy-light);
         padding-bottom: 0.5rem;
     }
     
+    /* Prerelease badge */
     .prerelease-badge {
-        background: linear-gradient(45deg, var(--warning-color), #fbbf24);
-        color: #1f2937;
+        background: var(--warning);
+        color: white;
         padding: 0.4rem 1rem;
         border-radius: 20px;
         font-size: 0.8rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        display: inline-block;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        display: block;
         text-align: center;
         width: fit-content;
-        margin-left: auto;
-        margin-right: auto;
-        display: block;
+        margin: 0 auto 2rem auto;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
     
+    /* Cards and containers */
+    .info-box, .feature-box, .method-card, .sidebar-section {
+        background: var(--slate-light);
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-dark);
+        margin: 1rem 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .info-box h4, .feature-box h4, .method-card .method-title {
+        color: var(--navy-light);
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .info-box p, .info-box li,
+    .feature-box p, .feature-box li,
+    .method-card p,
+    .sidebar-section p, .sidebar-section li {
+        color: var(--text-light);
+        line-height: 1.6;
+    }
+    
+    /* Version info */
     .version-info {
-        background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
-        padding: 1.2rem;
-        border-radius: 10px;
-        border: 1px solid var(--border-color);
+        background: var(--slate-light);
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-dark);
         margin: 1rem 0;
         text-align: center;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
     
     .version-info p {
-        color: var(--text-primary) !important;
+        color: var(--text-white);
+        margin: 0.2rem 0;
+    }
+    
+    /* File list */
+    .file-list {
+        background: var(--slate-light);
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-dark);
+        margin: 1rem 0;
+    }
+    
+    .file-list p {
+        color: var(--text-white);
         margin: 0.3rem 0;
     }
     
-    .info-box {
-        background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
-        padding: 1.8rem;
-        border-radius: 12px;
-        border: 1px solid var(--border-color);
-        margin: 1rem 0;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    .file-list span {
+        color: var(--text-light);
     }
     
-    .info-box h4 {
-        color: var(--light-blue) !important;
-        margin-bottom: 1rem;
-    }
-    
-    .info-box p, .info-box li {
-        color: var(--text-secondary) !important;
-        line-height: 1.6;
-    }
-    
-    .feature-box {
-        background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
-        padding: 1.8rem;
-        border-radius: 12px;
-        margin: 1rem 0;
-        border: 1px solid var(--border-color);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-    }
-    
-    .feature-box h4 {
-        color: var(--light-blue) !important;
-        margin-bottom: 1rem;
-    }
-    
-    .feature-box p, .feature-box li {
-        color: var(--text-secondary) !important;
-        line-height: 1.6;
-    }
-    
+    /* Metric cards */
     .metric-card {
-        background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
-        padding: 2rem;
-        border-radius: 15px;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        background: var(--slate-light);
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-dark);
         text-align: center;
-        border: 1px solid var(--border-color);
-        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
     }
     
     .metric-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 24px rgba(0,0,0,0.4);
-        border-color: var(--light-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
     
     .metric-value {
-        font-size: 2.4rem;
-        font-weight: 800;
-        margin-bottom: 0.6rem;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
     }
     
     .metric-label {
         font-size: 0.9rem;
-        color: var(--text-secondary) !important;
+        color: var(--text-light);
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
         font-weight: 500;
     }
     
+    /* Messages */
     .success-message {
-        background: linear-gradient(45deg, var(--success-color), #34d399);
-        color: white !important;
-        padding: 1.8rem;
-        border-radius: 12px;
-        font-weight: 600;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-    }
-    
-    .success-message * {
-        color: white !important;
+        background: var(--success);
+        color: white;
+        padding: 1.2rem;
+        border-radius: 8px;
+        font-weight: 500;
+        margin: 1rem 0;
     }
     
     .error-message {
-        background: linear-gradient(45deg, var(--error-color), #f87171);
-        color: white !important;
-        padding: 1.8rem;
-        border-radius: 12px;
-        font-weight: 600;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-    }
-    
-    .error-message * {
-        color: white !important;
-    }
-    
-    .sidebar-section {
-        background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
-        padding: 1.4rem;
-        border-radius: 10px;
+        background: var(--error);
+        color: white;
+        padding: 1.2rem;
+        border-radius: 8px;
+        font-weight: 500;
         margin: 1rem 0;
-        border: 1px solid var(--border-color);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
     
-    .sidebar-section p, .sidebar-section li {
-        color: var(--text-secondary) !important;
-        line-height: 1.6;
-    }
-    
-    .method-card {
-        background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
-        padding: 1.8rem;
-        border-radius: 12px;
-        border: 1px solid var(--border-color);
-        margin-bottom: 1rem;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-        transition: all 0.3s ease;
-    }
-    
-    .method-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-        border-color: var(--light-blue);
-    }
-    
-    .method-title {
-        font-weight: 700;
-        color: var(--light-blue) !important;
-        margin-bottom: 1rem;
-        font-size: 1.1rem;
-    }
-    
-    .method-card p {
-        color: var(--text-secondary) !important;
-        line-height: 1.6;
-    }
-    
-    .file-list {
-        background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
-        padding: 1.4rem;
-        border-radius: 10px;
-        margin: 0.8rem 0;
-        border: 1px solid var(--border-color);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-    
-    .file-list p {
-        color: var(--text-primary) !important;
-        margin: 0.5rem 0;
-    }
-    
-    .file-list span {
-        color: var(--text-muted) !important;
-    }
-    
+    /* Download section */
     .download-section {
-        background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
-        padding: 2.2rem;
-        border-radius: 15px;
-        border: 1px solid var(--border-color);
-        margin: 2rem 0;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        background: var(--slate-light);
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid var(--success);
+        margin: 1.5rem 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     
     .download-section h4 {
-        color: var(--text-primary) !important;
+        color: var(--text-white);
         margin-bottom: 1rem;
     }
     
     .download-section p {
-        color: var(--text-secondary) !important;
-        line-height: 1.6;
+        color: var(--text-light);
     }
     
     /* Footer */
     .footer-text {
         text-align: center;
-        color: var(--text-muted) !important;
+        color: var(--text-light);
         font-style: italic;
-        margin-top: 3rem;
-        padding: 1.5rem;
-        border-top: 1px solid var(--border-color);
+        margin-top: 2rem;
+        padding: 1rem;
+        border-top: 1px solid var(--border-dark);
     }
     
-    /* General overrides */
-    .stMarkdown {
-        color: var(--text-primary) !important;
+    /* Streamlit components - let them keep their default styling but ensure readability */
+    .stButton > button {
+        border-radius: 6px;
+        font-weight: 500;
+        border: none;
+        padding: 0.5rem 1rem;
     }
     
-    p {
-        color: var(--text-secondary) !important;
+    .stDownloadButton > button {
+        border-radius: 6px;
+        font-weight: 500;
+        border: none;
+        padding: 0.5rem 1rem;
     }
     
-    span {
-        color: var(--text-secondary) !important;
+    /* File uploader - keep Streamlit's default styling */
+    .stFileUploader label {
+        color: var(--text-white) !important;
     }
     
-    strong, b {
-        color: var(--text-primary) !important;
-    }
-    
-    li {
-        color: var(--text-secondary) !important;
-    }
-    
+    /* Slider */
     .stSlider label {
-        color: var(--text-primary) !important;
+        color: var(--text-white) !important;
+    }
+    
+    /* General text */
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--text-white);
+    }
+    
+    .stMarkdown {
+        color: var(--text-light);
+    }
+    
+    /* Method cards hover effect */
+    .method-card {
+        transition: transform 0.2s ease;
+    }
+    
+    .method-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
     </style>
-    
-    <script>
-    // JavaScript to force styling after page load
-    setTimeout(function() {
-        // Force file uploader styling - CLEAN BORDERS
-        const fileUploaders = document.querySelectorAll('[data-testid="stFileUploaderDropzone"]');
-        fileUploaders.forEach(function(uploader) {
-            uploader.style.backgroundColor = '#334155';
-            uploader.style.color = '#ffffff';
-            uploader.style.border = '1px solid #475569';
-            uploader.style.borderRadius = '12px';
-            
-            // Force all child elements
-            const children = uploader.querySelectorAll('*');
-            children.forEach(function(child) {
-                child.style.backgroundColor = '#334155';
-                child.style.color = '#ffffff';
-            });
-        });
-        
-        // Force all buttons to have white text
-        const buttons = document.querySelectorAll('button');
-        buttons.forEach(function(button) {
-            button.style.color = 'white';
-            
-            // Force all child elements in buttons
-            const children = button.querySelectorAll('*');
-            children.forEach(function(child) {
-                child.style.color = 'white';
-            });
-        });
-        
-        // Force download button styling specifically
-        const downloadButtons = document.querySelectorAll('button[data-testid*="download"]');
-        downloadButtons.forEach(function(button) {
-            button.style.background = 'linear-gradient(45deg, #10b981, #34d399)';
-            button.style.color = 'white';
-            button.style.borderRadius = '10px';
-            button.style.fontWeight = '600';
-            button.style.border = 'none';
-            
-            const children = button.querySelectorAll('*');
-            children.forEach(function(child) {
-                child.style.color = 'white';
-            });
-        });
-    }, 1000);
-    
-    // Run styling fix every 2 seconds to catch dynamic content
-    setInterval(function() {
-        const fileUploaders = document.querySelectorAll('[data-testid="stFileUploaderDropzone"]');
-        fileUploaders.forEach(function(uploader) {
-            uploader.style.backgroundColor = '#334155';
-            uploader.style.color = '#ffffff';
-            uploader.style.border = '1px solid #475569';
-            
-            const children = uploader.querySelectorAll('*');
-            children.forEach(function(child) {
-                child.style.backgroundColor = '#334155';
-                child.style.color = '#ffffff';
-            });
-        });
-        
-        const buttons = document.querySelectorAll('button');
-        buttons.forEach(function(button) {
-            button.style.color = 'white';
-            const children = button.querySelectorAll('*');
-            children.forEach(function(child) {
-                child.style.color = 'white';
-            });
-        });
-    }, 2000);
-    </script>
 """, unsafe_allow_html=True)
 
 # Main header
@@ -469,7 +276,7 @@ st.markdown('<h1 class="main-header">RefDedup</h1>', unsafe_allow_html=True)
 st.markdown('<p class="sub-header">Professional Reference Duplicate Remover for Systematic Reviews</p>', unsafe_allow_html=True)
 
 # Prerelease badge
-st.markdown('<div class="prerelease-badge">⚠ Prerelease Version</div>', unsafe_allow_html=True)
+st.markdown('<div class="prerelease-badge">Prerelease Version</div>', unsafe_allow_html=True)
 
 # Sidebar configuration
 with st.sidebar:
@@ -550,7 +357,7 @@ with col2:
             <li style="margin-bottom: 0.5rem;">• Intelligent duplicate detection</li>
             <li style="margin-bottom: 0.5rem;">• Conservative similarity matching</li>
             <li style="margin-bottom: 0.5rem;">• Dual output files (clean + duplicates)</li>
-            <li style="margin-bottom: 0.5rem;">• Professional dark blue interface</li>
+            <li style="margin-bottom: 0.5rem;">• Professional interface design</li>
         </ul>
     </div>
     """, unsafe_allow_html=True)
@@ -607,7 +414,7 @@ if uploaded_files:
                 with col1:
                     st.markdown("""
                     <div class="metric-card">
-                        <div class="metric-value" style="color: #4299e1;">{}</div>
+                        <div class="metric-value" style="color: #3b82f6;">{}</div>
                         <div class="metric-label">Original Records</div>
                     </div>
                     """.format(total_before), unsafe_allow_html=True)
@@ -615,7 +422,7 @@ if uploaded_files:
                 with col2:
                     st.markdown("""
                     <div class="metric-card">
-                        <div class="metric-value" style="color: #10b981;">{}</div>
+                        <div class="metric-value" style="color: #059669;">{}</div>
                         <div class="metric-label">Final Records</div>
                     </div>
                     """.format(total_after), unsafe_allow_html=True)
@@ -624,7 +431,7 @@ if uploaded_files:
                     duplicates_removed = total_before - total_after
                     st.markdown("""
                     <div class="metric-card">
-                        <div class="metric-value" style="color: #ef4444;">{}</div>
+                        <div class="metric-value" style="color: #dc2626;">{}</div>
                         <div class="metric-label">Duplicates Found</div>
                     </div>
                     """.format(duplicates_removed), unsafe_allow_html=True)
@@ -636,7 +443,7 @@ if uploaded_files:
                         reduction_percent = 0
                     st.markdown("""
                     <div class="metric-card">
-                        <div class="metric-value" style="color: #f59e0b;">{:.1f}%</div>
+                        <div class="metric-value" style="color: #d97706;">{:.1f}%</div>
                         <div class="metric-label">Reduction</div>
                     </div>
                     """.format(reduction_percent), unsafe_allow_html=True)
@@ -682,7 +489,7 @@ if uploaded_files:
                         use_container_width=True,
                         help=f"Contains {total_after} unique references"
                     )
-                    st.markdown(f'<p style="color: #e2e8f0 !important;"><strong>File size:</strong> {len(cleaned_content.encode("utf-8")):,} bytes</p>', unsafe_allow_html=True)
+                    st.write(f"**File size:** {len(cleaned_content.encode('utf-8')):,} bytes")
                 
                 with col2:
                     if duplicates_content:
@@ -694,7 +501,7 @@ if uploaded_files:
                             use_container_width=True,
                             help=f"Contains {duplicates_removed} duplicate references for review"
                         )
-                        st.markdown(f'<p style="color: #e2e8f0 !important;"><strong>File size:</strong> {len(duplicates_content.encode("utf-8")):,} bytes</p>', unsafe_allow_html=True)
+                        st.write(f"**File size:** {len(duplicates_content.encode('utf-8')):,} bytes")
                     else:
                         st.info("No duplicates found")
                 
