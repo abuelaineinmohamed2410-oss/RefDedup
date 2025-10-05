@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# NUCLEAR CSS + JavaScript override approach
+# Clean CSS without dashed borders
 st.markdown("""
     <style>
     /* Global theme colors */
@@ -46,7 +46,7 @@ st.markdown("""
         color: var(--text-primary) !important;
     }
     
-    /* NUCLEAR File uploader override - ALL POSSIBLE SELECTORS */
+    /* File uploader - CLEAN SOLID BORDERS */
     .stFileUploader,
     .stFileUploader *,
     .stFileUploader div,
@@ -62,11 +62,11 @@ st.markdown("""
         background-color: var(--bg-card) !important;
         background: var(--bg-card) !important;
         color: var(--text-primary) !important;
-        border: 2px dashed var(--accent-blue) !important;
+        border: 1px solid var(--border-color) !important;
         border-radius: 12px !important;
     }
     
-    /* NUCLEAR Button styling - ALL POSSIBLE SELECTORS */
+    /* Clean button styling */
     button,
     .stButton button,
     .stDownloadButton button,
@@ -184,7 +184,7 @@ st.markdown("""
         background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
         padding: 1.8rem;
         border-radius: 12px;
-        border: 1px solid var(--accent-blue);
+        border: 1px solid var(--border-color);
         margin: 1rem 0;
         box-shadow: 0 6px 12px rgba(0,0,0,0.3);
     }
@@ -204,7 +204,7 @@ st.markdown("""
         padding: 1.8rem;
         border-radius: 12px;
         margin: 1rem 0;
-        border: 1px solid var(--accent-blue);
+        border: 1px solid var(--border-color);
         box-shadow: 0 6px 12px rgba(0,0,0,0.3);
     }
     
@@ -224,7 +224,7 @@ st.markdown("""
         border-radius: 15px;
         box-shadow: 0 8px 16px rgba(0,0,0,0.3);
         text-align: center;
-        border: 1px solid var(--accent-blue);
+        border: 1px solid var(--border-color);
         transition: all 0.3s ease;
     }
     
@@ -293,7 +293,7 @@ st.markdown("""
         background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
         padding: 1.8rem;
         border-radius: 12px;
-        border: 1px solid var(--accent-blue);
+        border: 1px solid var(--border-color);
         margin-bottom: 1rem;
         box-shadow: 0 6px 12px rgba(0,0,0,0.3);
         transition: all 0.3s ease;
@@ -339,7 +339,7 @@ st.markdown("""
         background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
         padding: 2.2rem;
         border-radius: 15px;
-        border: 1px solid var(--success-color);
+        border: 1px solid var(--border-color);
         margin: 2rem 0;
         box-shadow: 0 8px 16px rgba(0,0,0,0.3);
     }
@@ -393,12 +393,12 @@ st.markdown("""
     <script>
     // JavaScript to force styling after page load
     setTimeout(function() {
-        // Force file uploader styling
+        // Force file uploader styling - CLEAN BORDERS
         const fileUploaders = document.querySelectorAll('[data-testid="stFileUploaderDropzone"]');
         fileUploaders.forEach(function(uploader) {
             uploader.style.backgroundColor = '#334155';
             uploader.style.color = '#ffffff';
-            uploader.style.border = '2px dashed #3182ce';
+            uploader.style.border = '1px solid #475569';
             uploader.style.borderRadius = '12px';
             
             // Force all child elements
@@ -443,6 +443,7 @@ st.markdown("""
         fileUploaders.forEach(function(uploader) {
             uploader.style.backgroundColor = '#334155';
             uploader.style.color = '#ffffff';
+            uploader.style.border = '1px solid #475569';
             
             const children = uploader.querySelectorAll('*');
             children.forEach(function(child) {
@@ -681,7 +682,6 @@ if uploaded_files:
                         use_container_width=True,
                         help=f"Contains {total_after} unique references"
                     )
-                    # Use custom styled text instead of st.write
                     st.markdown(f'<p style="color: #e2e8f0 !important;"><strong>File size:</strong> {len(cleaned_content.encode("utf-8")):,} bytes</p>', unsafe_allow_html=True)
                 
                 with col2:
@@ -694,7 +694,6 @@ if uploaded_files:
                             use_container_width=True,
                             help=f"Contains {duplicates_removed} duplicate references for review"
                         )
-                        # Use custom styled text instead of st.write
                         st.markdown(f'<p style="color: #e2e8f0 !important;"><strong>File size:</strong> {len(duplicates_content.encode("utf-8")):,} bytes</p>', unsafe_allow_html=True)
                     else:
                         st.info("No duplicates found")
