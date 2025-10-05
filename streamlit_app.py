@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for professional dark blue theme with proper contrast
+# Custom CSS for professional dark blue theme with fixed contrast issues
 st.markdown("""
     <style>
     /* Global theme colors */
@@ -37,7 +37,7 @@ st.markdown("""
         color: var(--text-primary);
     }
     
-    /* Force text colors for all elements */
+    /* Force text colors for most elements */
     .stApp * {
         color: var(--text-primary) !important;
     }
@@ -51,18 +51,50 @@ st.markdown("""
         color: var(--text-primary) !important;
     }
     
-    /* File uploader styling */
+    /* Fix File uploader styling - CORRECTED */
+    .stFileUploader {
+        color: var(--text-primary) !important;
+    }
+    
     .stFileUploader label {
         color: var(--text-primary) !important;
     }
     
+    .stFileUploader > div > div {
+        background-color: var(--bg-card) !important;
+        border: 2px dashed var(--accent-blue) !important;
+        border-radius: 12px !important;
+        color: var(--text-primary) !important;
+    }
+    
+    .stFileUploader > div > div > div {
+        background-color: var(--bg-card) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    .stFileUploader > div > div > div > div {
+        background-color: var(--bg-card) !important;
+        color: var(--text-primary) !important;
+        padding: 2rem !important;
+    }
+    
     .stFileUploader div[data-testid="stFileUploaderDropzone"] {
         background-color: var(--bg-card) !important;
-        border-color: var(--accent-blue) !important;
+        border: 2px dashed var(--accent-blue) !important;
+        border-radius: 12px !important;
         color: var(--text-primary) !important;
     }
     
     .stFileUploader div[data-testid="stFileUploaderDropzone"] * {
+        background-color: var(--bg-card) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    .stFileUploader div[data-testid="stFileUploaderDropzone"] span {
+        color: var(--text-secondary) !important;
+    }
+    
+    .stFileUploader div[data-testid="stFileUploaderDropzone"] p {
         color: var(--text-secondary) !important;
     }
     
@@ -342,7 +374,7 @@ st.markdown("""
         line-height: 1.6;
     }
     
-    /* Button styling */
+    /* Process Button styling - FIXED */
     .stButton > button {
         background: linear-gradient(45deg, var(--accent-blue), var(--light-blue)) !important;
         border: none !important;
@@ -358,9 +390,20 @@ st.markdown("""
         background: linear-gradient(45deg, var(--light-blue), #60a5fa) !important;
         transform: translateY(-2px) !important;
         box-shadow: 0 8px 16px rgba(0,0,0,0.4) !important;
+        color: white !important;
     }
     
-    /* Download button styling */
+    .stButton > button:focus {
+        color: white !important;
+        background: linear-gradient(45deg, var(--accent-blue), var(--light-blue)) !important;
+    }
+    
+    .stButton > button:active {
+        color: white !important;
+        background: linear-gradient(45deg, var(--accent-blue), var(--light-blue)) !important;
+    }
+    
+    /* Download button styling - FIXED */
     .stDownloadButton > button {
         background: linear-gradient(45deg, var(--success-color), #34d399) !important;
         border: none !important;
@@ -369,12 +412,24 @@ st.markdown("""
         font-weight: 600 !important;
         transition: all 0.3s ease !important;
         box-shadow: 0 6px 12px rgba(0,0,0,0.3) !important;
+        padding: 0.8rem 1.5rem !important;
     }
     
     .stDownloadButton > button:hover {
         background: linear-gradient(45deg, #34d399, #6ee7b7) !important;
         transform: translateY(-2px) !important;
         box-shadow: 0 8px 16px rgba(0,0,0,0.4) !important;
+        color: white !important;
+    }
+    
+    .stDownloadButton > button:focus {
+        color: white !important;
+        background: linear-gradient(45deg, var(--success-color), #34d399) !important;
+    }
+    
+    .stDownloadButton > button:active {
+        color: white !important;
+        background: linear-gradient(45deg, var(--success-color), #34d399) !important;
     }
     
     /* Footer */
@@ -387,9 +442,25 @@ st.markdown("""
         border-top: 1px solid var(--border-color);
     }
     
-    /* Info and help text */
-    .stAlert, .stInfo, .stSuccess, .stError, .stWarning {
-        color: var(--text-primary) !important;
+    /* Info and help text - Don't override these to white */
+    .stAlert * {
+        color: inherit !important;
+    }
+    
+    .stInfo * {
+        color: inherit !important;
+    }
+    
+    .stSuccess * {
+        color: inherit !important;
+    }
+    
+    .stError * {
+        color: inherit !important;
+    }
+    
+    .stWarning * {
+        color: inherit !important;
     }
     
     /* Text input fields */
@@ -397,8 +468,10 @@ st.markdown("""
         color: var(--text-primary) !important;
     }
     
-    /* Make sure all paragraph and span text is visible */
-    p, span, div {
+    /* Override for specific elements that shouldn't be white */
+    p:not(.download-section p):not(.info-box p):not(.feature-box p):not(.method-card p):not(.sidebar-section p), 
+    span:not(.file-list span), 
+    div:not(.download-section div):not(.info-box div):not(.feature-box div) {
         color: var(--text-secondary) !important;
     }
     
