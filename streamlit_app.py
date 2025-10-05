@@ -251,11 +251,7 @@ with st.sidebar:
             <li><strong>Title similarity</strong> - Configurable threshold</li>
         </ol>
         
-        <p><strong>Supported formats:</strong></p>
-        <ul>
-            <li>RIS (.ris)</li>
-            <li>NBIB (.nbib)</li>
-        </ul>
+       
     </div>
     """, unsafe_allow_html=True)
     
