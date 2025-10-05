@@ -1,7 +1,15 @@
 import re
-from rapidfuzz import fuzz
+import unicodedata
+from rapidfuzz import fuzz, process
 
-# ---------------- Parsing Functions ---------------- #
+def normalize_text(text):
+    if not isinstance(text, str):
+        text = str(text)
+    # Remove accents, unify case, strip
+    text = unicodedata.normalize('NFKD', text)
+    text = text.encode('ascii', 'ignore').decode('utf-8')
+    return re.sub(r's+', ' ', text).strip().lower()
+
 def parse_nbib_from_string(content):
     records = []
     record = {}
@@ -14,7 +22,7 @@ def parse_nbib_from_string(content):
                 record = {}
             last_tag = None
             continue
-        match = re.match(r"^([A-Z0-9]+)\s*-\s*(.*)$", line)
+        match = re.match(r"^([A-Z0-9]+)s*-s*(.*)$", line)
         if match:
             tag, value = match.groups()
             if tag in record:
@@ -73,7 +81,6 @@ def parse_ris_from_string(content):
         records.append(record)
     return records
 
-# ---------------- RIS Export ---------------- #
 def record_to_ris(record):
     ris_lines = ["TY  - JOUR"]
     for tag in record:
@@ -84,53 +91,46 @@ def record_to_ris(record):
         else:
             ris_lines.append(f"{tag}  - {value}")
     ris_lines.append("ER  -")
-    return "\n".join(ris_lines)
+    return "
+".join(ris_lines)
 
-# ---------------- Duplicate Removal ---------------- #
 def remove_duplicates(records, title_threshold=90):
     cleaned = []
-    seen_titles = []
-    seen_ids = set()  # for PMID or DOI
-
+    seen_titles = set()
+    seen_ids = set()
     for rec in records:
-        pmid = rec.get("PMID", "")
-        doi = rec.get("LID", "")
+        pmid = str(rec.get("PMID", "")).strip()
+        doi = str(rec.get("LID", "")).strip()
         title = rec.get("TI", "")
+        title = " ".join(title) if isinstance(title, list) else str(title)
+        title_key = normalize_text(title)
 
-        if isinstance(title, list):
-            title = " ".join(title)
-        if isinstance(doi, list):
-            doi = doi[0]
-        if isinstance(pmid, list):
-            pmid = pmid[0]
-
-        duplicate = False
-        if pmid in seen_ids or doi in seen_ids:
-            duplicate = True
-        else:
+        # Remove near-duplicates instead of only exact
+        is_duplicate = False
+        # Check IDs
+        for ident in (pmid, doi):
+            if ident and ident in seen_ids:
+                is_duplicate = True
+                break
+        # Check title fuzzy
+        if not is_duplicate:
             for t in seen_titles:
-                if fuzz.ratio(title.lower(), t.lower()) >= title_threshold:
-                    duplicate = True
+                if fuzz.ratio(title_key, t) >= title_threshold:
+                    is_duplicate = True
                     break
-
-        if not duplicate:
+        if not is_duplicate and title_key.strip():
             cleaned.append(rec)
-            seen_titles.append(title)
-            if pmid:
-                seen_ids.add(pmid)
-            if doi:
-                seen_ids.add(doi)
-
+            for ident in (pmid, doi):
+                if ident:
+                    seen_ids.add(ident)
+            seen_titles.add(title_key)
     return cleaned
 
-# ---------------- Streamlit Upload Compatible ---------------- #
 def process_uploaded_files(uploaded_files, title_threshold=90):
     all_records = []
-
     for uploaded_file in uploaded_files:
         file_name = uploaded_file.name.lower()
-        content = uploaded_file.getvalue().decode("utf-8")
-
+        content = uploaded_file.getvalue().decode("utf-8", errors="ignore")
         if file_name.endswith(".nbib"):
             records = parse_nbib_from_string(content)
         elif file_name.endswith(".ris"):
@@ -138,7 +138,6 @@ def process_uploaded_files(uploaded_files, title_threshold=90):
         else:
             continue
         all_records.extend(records)
-
     total_before = len(all_records)
     cleaned_records = remove_duplicates(all_records, title_threshold=title_threshold)
     total_after = len(cleaned_records)
