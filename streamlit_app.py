@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for professional dark blue theme
+# Custom CSS for professional dark blue theme with proper contrast
 st.markdown("""
     <style>
     /* Global theme colors */
@@ -21,25 +21,77 @@ st.markdown("""
         --light-blue: #4299e1;
         --text-primary: #ffffff;
         --text-secondary: #e2e8f0;
-        --text-muted: #a0aec0;
-        --bg-primary: #0f1419;
-        --bg-secondary: #1a202c;
-        --bg-card: #2d3748;
-        --border-color: #4a5568;
-        --success-color: #38a169;
-        --warning-color: #d69e2e;
-        --error-color: #e53e3e;
+        --text-muted: #cbd5e0;
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-card: #334155;
+        --border-color: #475569;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --error-color: #ef4444;
     }
     
-    /* Main app background */
+    /* Override Streamlit's default styling */
     .stApp {
         background: linear-gradient(135deg, var(--bg-primary) 0%, var(--primary-dark-blue) 100%);
         color: var(--text-primary);
     }
     
+    /* Force text colors for all elements */
+    .stApp * {
+        color: var(--text-primary) !important;
+    }
+    
     /* Sidebar styling */
-    .css-1d391kg {
-        background-color: var(--bg-secondary);
+    section[data-testid="stSidebar"] {
+        background-color: var(--bg-secondary) !important;
+    }
+    
+    section[data-testid="stSidebar"] * {
+        color: var(--text-primary) !important;
+    }
+    
+    /* File uploader styling */
+    .stFileUploader label {
+        color: var(--text-primary) !important;
+    }
+    
+    .stFileUploader div[data-testid="stFileUploaderDropzone"] {
+        background-color: var(--bg-card) !important;
+        border-color: var(--accent-blue) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    .stFileUploader div[data-testid="stFileUploaderDropzone"] * {
+        color: var(--text-secondary) !important;
+    }
+    
+    /* Progress bar */
+    .stProgress .st-bo {
+        background-color: var(--bg-card) !important;
+    }
+    
+    /* Slider styling */
+    .stSlider label {
+        color: var(--text-primary) !important;
+    }
+    
+    .stSlider .st-bf {
+        color: var(--text-primary) !important;
+    }
+    
+    /* Checkbox styling */
+    .stCheckbox label {
+        color: var(--text-primary) !important;
+    }
+    
+    /* Metric styling */
+    .stMetric label {
+        color: var(--text-secondary) !important;
+    }
+    
+    .stMetric .metric-value {
+        color: var(--text-primary) !important;
     }
     
     .main-header {
@@ -49,8 +101,8 @@ st.markdown("""
         margin-bottom: 0.5rem;
         font-weight: 700;
         letter-spacing: -1px;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        background: linear-gradient(45deg, #ffffff, #4299e1);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        background: linear-gradient(45deg, #ffffff, #60a5fa);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -74,224 +126,290 @@ st.markdown("""
     }
     
     .prerelease-badge {
-        background: linear-gradient(45deg, var(--warning-color), #f6ad55);
-        color: #1a202c;
-        padding: 0.3rem 0.8rem;
-        border-radius: 15px;
+        background: linear-gradient(45deg, var(--warning-color), #fbbf24);
+        color: #1f2937;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
         font-size: 0.8rem;
-        font-weight: 600;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         display: inline-block;
-        margin-bottom: 1rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        text-align: center;
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
     }
     
     .version-info {
-        background-color: var(--bg-card);
-        padding: 1rem;
-        border-radius: 8px;
+        background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
+        padding: 1.2rem;
+        border-radius: 10px;
         border: 1px solid var(--border-color);
         margin: 1rem 0;
         text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .version-info p {
+        color: var(--text-primary) !important;
+        margin: 0.3rem 0;
     }
     
     .stats-container {
         background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
         padding: 1.5rem;
-        border-radius: 10px;
+        border-radius: 12px;
         border: 1px solid var(--accent-blue);
         margin: 1rem 0;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
     }
     
     .info-box {
         background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
-        padding: 1.5rem;
-        border-radius: 10px;
+        padding: 1.8rem;
+        border-radius: 12px;
         border: 1px solid var(--accent-blue);
         margin: 1rem 0;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        color: var(--text-primary);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }
+    
+    .info-box h4 {
+        color: var(--light-blue) !important;
+        margin-bottom: 1rem;
+    }
+    
+    .info-box p, .info-box li {
+        color: var(--text-secondary) !important;
+        line-height: 1.6;
     }
     
     .feature-box {
         background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
-        padding: 1.5rem;
-        border-radius: 10px;
+        padding: 1.8rem;
+        border-radius: 12px;
         margin: 1rem 0;
         border: 1px solid var(--accent-blue);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        color: var(--text-primary);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }
+    
+    .feature-box h4 {
+        color: var(--light-blue) !important;
+        margin-bottom: 1rem;
+    }
+    
+    .feature-box p, .feature-box li {
+        color: var(--text-secondary) !important;
+        line-height: 1.6;
     }
     
     .metric-card {
         background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
-        padding: 1.8rem;
-        border-radius: 12px;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
         text-align: center;
         border: 1px solid var(--accent-blue);
         transition: all 0.3s ease;
     }
     
     .metric-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+        border-color: var(--light-blue);
     }
     
     .metric-value {
-        font-size: 2.2rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
+        font-size: 2.4rem;
+        font-weight: 800;
+        margin-bottom: 0.6rem;
         text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     
     .metric-label {
         font-size: 0.9rem;
-        color: var(--text-secondary);
+        color: var(--text-secondary) !important;
         text-transform: uppercase;
-        letter-spacing: 0.8px;
+        letter-spacing: 1px;
         font-weight: 500;
     }
     
     .success-message {
-        background: linear-gradient(45deg, var(--success-color), #48bb78);
-        color: white;
-        padding: 1.5rem;
-        border-radius: 10px;
-        border-left: 4px solid #38a169;
-        font-weight: 500;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        background: linear-gradient(45deg, var(--success-color), #34d399);
+        color: white !important;
+        padding: 1.8rem;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }
+    
+    .success-message * {
+        color: white !important;
     }
     
     .error-message {
-        background: linear-gradient(45deg, var(--error-color), #f56565);
-        color: white;
-        padding: 1.5rem;
-        border-radius: 10px;
-        border-left: 4px solid var(--error-color);
-        font-weight: 500;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        background: linear-gradient(45deg, var(--error-color), #f87171);
+        color: white !important;
+        padding: 1.8rem;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }
+    
+    .error-message * {
+        color: white !important;
     }
     
     .sidebar-section {
         background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
-        padding: 1.2rem;
-        border-radius: 8px;
+        padding: 1.4rem;
+        border-radius: 10px;
         margin: 1rem 0;
         border: 1px solid var(--border-color);
-        color: var(--text-primary);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .sidebar-section p, .sidebar-section li {
+        color: var(--text-secondary) !important;
+        line-height: 1.6;
     }
     
     .method-card {
         background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
-        padding: 1.5rem;
-        border-radius: 10px;
+        padding: 1.8rem;
+        border-radius: 12px;
         border: 1px solid var(--accent-blue);
         margin-bottom: 1rem;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
         transition: all 0.3s ease;
-        color: var(--text-primary);
     }
     
     .method-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.4);
         border-color: var(--light-blue);
     }
     
     .method-title {
-        font-weight: 600;
-        color: var(--light-blue);
-        margin-bottom: 0.8rem;
+        font-weight: 700;
+        color: var(--light-blue) !important;
+        margin-bottom: 1rem;
         font-size: 1.1rem;
+    }
+    
+    .method-card p {
+        color: var(--text-secondary) !important;
+        line-height: 1.6;
     }
     
     .file-list {
         background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
-        padding: 1.2rem;
-        border-radius: 8px;
-        margin: 0.5rem 0;
+        padding: 1.4rem;
+        border-radius: 10px;
+        margin: 0.8rem 0;
         border: 1px solid var(--border-color);
-        color: var(--text-primary);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
     
-    .stFileUploader > div > div > div > div {
-        background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
-        border: 2px dashed var(--accent-blue);
-        border-radius: 12px;
-        padding: 2.5rem;
-        color: var(--text-primary);
+    .file-list p {
+        color: var(--text-primary) !important;
+        margin: 0.5rem 0;
+    }
+    
+    .file-list span {
+        color: var(--text-muted) !important;
     }
     
     .download-section {
         background: linear-gradient(135deg, var(--bg-card), var(--secondary-blue));
-        padding: 2rem;
-        border-radius: 12px;
+        padding: 2.2rem;
+        border-radius: 15px;
         border: 1px solid var(--success-color);
-        margin: 1.5rem 0;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-        color: var(--text-primary);
+        margin: 2rem 0;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+    
+    .download-section h4 {
+        color: var(--text-primary) !important;
+        margin-bottom: 1rem;
+    }
+    
+    .download-section p {
+        color: var(--text-secondary) !important;
+        line-height: 1.6;
     }
     
     /* Button styling */
     .stButton > button {
-        background: linear-gradient(45deg, var(--accent-blue), var(--light-blue));
-        border: none;
-        border-radius: 8px;
-        color: white;
-        font-weight: 600;
-        padding: 0.8rem 2rem;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        background: linear-gradient(45deg, var(--accent-blue), var(--light-blue)) !important;
+        border: none !important;
+        border-radius: 10px !important;
+        color: white !important;
+        font-weight: 600 !important;
+        padding: 1rem 2rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3) !important;
     }
     
     .stButton > button:hover {
-        background: linear-gradient(45deg, var(--light-blue), #60a5fa);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        background: linear-gradient(45deg, var(--light-blue), #60a5fa) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.4) !important;
     }
     
     /* Download button styling */
     .stDownloadButton > button {
-        background: linear-gradient(45deg, var(--success-color), #48bb78);
-        border: none;
-        border-radius: 8px;
-        color: white;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        background: linear-gradient(45deg, var(--success-color), #34d399) !important;
+        border: none !important;
+        border-radius: 10px !important;
+        color: white !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3) !important;
     }
     
     .stDownloadButton > button:hover {
-        background: linear-gradient(45deg, #48bb78, #68d391);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-    }
-    
-    /* Slider styling */
-    .stSlider > div > div > div {
-        color: var(--accent-blue);
-    }
-    
-    /* Text colors */
-    h1, h2, h3, h4, h5, h6 {
-        color: var(--text-primary);
-    }
-    
-    p, li, span {
-        color: var(--text-secondary);
+        background: linear-gradient(45deg, #34d399, #6ee7b7) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.4) !important;
     }
     
     /* Footer */
     .footer-text {
         text-align: center;
-        color: var(--text-muted);
+        color: var(--text-muted) !important;
         font-style: italic;
-        margin-top: 2rem;
-        padding: 1rem;
+        margin-top: 3rem;
+        padding: 1.5rem;
         border-top: 1px solid var(--border-color);
+    }
+    
+    /* Info and help text */
+    .stAlert, .stInfo, .stSuccess, .stError, .stWarning {
+        color: var(--text-primary) !important;
+    }
+    
+    /* Text input fields */
+    .stTextInput label {
+        color: var(--text-primary) !important;
+    }
+    
+    /* Make sure all paragraph and span text is visible */
+    p, span, div {
+        color: var(--text-secondary) !important;
+    }
+    
+    /* Strong/bold text */
+    strong, b {
+        color: var(--text-primary) !important;
+    }
+    
+    /* List items */
+    li {
+        color: var(--text-secondary) !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -368,7 +486,7 @@ with col1:
         st.markdown('<h4 class="section-header">Uploaded Files</h4>', unsafe_allow_html=True)
         files_html = '<div class="file-list">'
         for i, file in enumerate(uploaded_files, 1):
-            files_html += f'<p><strong>{i}.</strong> {file.name} <span style="color: #a0aec0;">({file.size:,} bytes)</span></p>'
+            files_html += f'<p><strong>{i}.</strong> {file.name} <span>({file.size:,} bytes)</span></p>'
         files_html += '</div>'
         st.markdown(files_html, unsafe_allow_html=True)
 
@@ -376,7 +494,7 @@ with col2:
     # Features box
     st.markdown("""
     <div class="feature-box">
-        <h4 style="color: #4299e1; margin-bottom: 1rem;">Key Features</h4>
+        <h4>Key Features</h4>
         <ul style="list-style-type: none; padding-left: 0;">
             <li style="margin-bottom: 0.5rem;">• Multiple file format support</li>
             <li style="margin-bottom: 0.5rem;">• Intelligent duplicate detection</li>
@@ -447,7 +565,7 @@ if uploaded_files:
                 with col2:
                     st.markdown("""
                     <div class="metric-card">
-                        <div class="metric-value" style="color: #38a169;">{}</div>
+                        <div class="metric-value" style="color: #10b981;">{}</div>
                         <div class="metric-label">Final Records</div>
                     </div>
                     """.format(total_after), unsafe_allow_html=True)
@@ -456,7 +574,7 @@ if uploaded_files:
                     duplicates_removed = total_before - total_after
                     st.markdown("""
                     <div class="metric-card">
-                        <div class="metric-value" style="color: #e53e3e;">{}</div>
+                        <div class="metric-value" style="color: #ef4444;">{}</div>
                         <div class="metric-label">Duplicates Found</div>
                     </div>
                     """.format(duplicates_removed), unsafe_allow_html=True)
@@ -468,7 +586,7 @@ if uploaded_files:
                         reduction_percent = 0
                     st.markdown("""
                     <div class="metric-card">
-                        <div class="metric-value" style="color: #d69e2e;">{:.1f}%</div>
+                        <div class="metric-value" style="color: #f59e0b;">{:.1f}%</div>
                         <div class="metric-label">Reduction</div>
                     </div>
                     """.format(reduction_percent), unsafe_allow_html=True)
@@ -497,8 +615,8 @@ if uploaded_files:
                 # Download section
                 st.markdown("""
                 <div class="download-section">
-                    <h4 style="color: #ffffff; margin-bottom: 1rem;">Download Results</h4>
-                    <p style="color: #e2e8f0;">Two files are available for download:</p>
+                    <h4>Download Results</h4>
+                    <p>Two files are available for download:</p>
                 """, unsafe_allow_html=True)
                 
                 # Two download buttons side by side
@@ -544,7 +662,7 @@ else:
     # Instructions when no files uploaded
     st.markdown("""
     <div class="info-box">
-        <h4 style="color: #4299e1;">How to Use RefDedup</h4>
+        <h4>How to Use RefDedup</h4>
         <ol>
             <li><strong>Upload Files:</strong> Select your RIS or NBIB reference files using the file uploader above</li>
             <li><strong>Configure Settings:</strong> Adjust the similarity threshold in the sidebar (95% recommended)</li>
