@@ -14,9 +14,7 @@ if uploaded_files:
     st.info("Processing files...")
     try:
         cleaned_records, total_before, total_after = process_uploaded_files(uploaded_files)
-        output_content = "
-
-".join([record_to_ris(rec) for rec in cleaned_records])
+        output_content = "\n\n".join([record_to_ris(rec) for rec in cleaned_records])
         st.success("Processing complete!")
         st.write(f"Records before: {total_before}")
         st.write(f"Records after: {total_after}")
