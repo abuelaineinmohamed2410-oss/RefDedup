@@ -7,6 +7,7 @@ st.set_page_config(
     layout="centered"
 )
 
+# Style (no icons/AI; simple, professional)
 st.markdown(
     """
     <style>
@@ -27,6 +28,7 @@ st.markdown(
     </div>
     """, unsafe_allow_html=True
 )
+
 st.write(
     "Upload your **RIS** or **NBIB** files below. RefDedup removes near-duplicate references based on Title, DOI, and PMID, streamlining the initial screening for systematic reviews."
 )
