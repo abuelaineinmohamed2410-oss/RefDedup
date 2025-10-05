@@ -7,7 +7,6 @@ st.set_page_config(
     layout="centered"
 )
 
-# Style (no icons/AI; simple, professional)
 st.markdown(
     """
     <style>
@@ -17,7 +16,7 @@ st.markdown(
     .header h4 { color: #FFA000; margin-top: 0; }
     .stText, .stMarkdown, .stTable { color: #111; }
     </style>
-    """, unsafe_allow_html=True,
+    """, unsafe_allow_html=True
 )
 
 st.markdown(
@@ -29,9 +28,7 @@ st.markdown(
     """, unsafe_allow_html=True
 )
 
-st.write(
-    "Upload your **RIS** or **NBIB** files below. RefDedup removes near-duplicate references based on Title, DOI, and PMID, streamlining the initial screening for systematic reviews."
-)
+st.write("Upload your RIS or NBIB files below. RefDedup removes near-duplicate references based on Title, DOI, and PMID.")
 
 uploaded_files = st.file_uploader(
     "Upload files (.ris, .nbib)",
@@ -63,7 +60,7 @@ st.sidebar.write(
     """
     **RefDedup**  
     Created by Mohamed Abu Elainein
-
+    
     Removes duplicates from RIS and NBIB files  
     using Titles, DOIs and PMIDs.
     """
