@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for professional dark blue theme - AGGRESSIVE OVERRIDES
+# NUCLEAR CSS + JavaScript override approach
 st.markdown("""
     <style>
     /* Global theme colors */
@@ -46,158 +46,72 @@ st.markdown("""
         color: var(--text-primary) !important;
     }
     
-    /* AGGRESSIVE File uploader styling fixes */
-    div[data-testid="stFileUploaderDropzone"] {
+    /* NUCLEAR File uploader override - ALL POSSIBLE SELECTORS */
+    .stFileUploader,
+    .stFileUploader *,
+    .stFileUploader div,
+    .stFileUploader p,
+    .stFileUploader span,
+    .stFileUploader small,
+    div[data-testid="stFileUploaderDropzone"],
+    div[data-testid="stFileUploaderDropzone"] *,
+    div[data-testid="stFileUploaderDropzone"] div,
+    div[data-testid="stFileUploaderDropzone"] p,
+    div[data-testid="stFileUploaderDropzone"] span,
+    div[data-testid="stFileUploaderDropzone"] small {
         background-color: var(--bg-card) !important;
         background: var(--bg-card) !important;
+        color: var(--text-primary) !important;
         border: 2px dashed var(--accent-blue) !important;
         border-radius: 12px !important;
-        color: var(--text-primary) !important;
     }
     
-    div[data-testid="stFileUploaderDropzone"] * {
-        background-color: var(--bg-card) !important;
-        background: var(--bg-card) !important;
-        color: var(--text-primary) !important;
-    }
-    
-    div[data-testid="stFileUploaderDropzone"] p {
-        color: var(--text-primary) !important;
-    }
-    
-    div[data-testid="stFileUploaderDropzone"] span {
-        color: var(--text-secondary) !important;
-    }
-    
-    div[data-testid="stFileUploaderDropzone"] small {
-        color: var(--text-secondary) !important;
-    }
-    
-    div[data-testid="stFileUploaderDropzone"] div {
-        background-color: var(--bg-card) !important;
-        background: var(--bg-card) !important;
-        color: var(--text-primary) !important;
-    }
-    
-    /* Target all possible file uploader elements */
-    .stFileUploader div {
-        background-color: var(--bg-card) !important;
-        color: var(--text-primary) !important;
-    }
-    
-    .stFileUploader p {
-        color: var(--text-primary) !important;
-    }
-    
-    .stFileUploader span {
-        color: var(--text-secondary) !important;
-    }
-    
-    .stFileUploader small {
-        color: var(--text-secondary) !important;
-    }
-    
-    .stFileUploader label {
-        color: var(--text-primary) !important;
-    }
-    
-    /* SUPER AGGRESSIVE Button styling */
-    button[kind="primary"] {
-        background: linear-gradient(45deg, var(--accent-blue), var(--light-blue)) !important;
+    /* NUCLEAR Button styling - ALL POSSIBLE SELECTORS */
+    button,
+    .stButton button,
+    .stDownloadButton button,
+    button[kind="primary"],
+    button[kind="secondary"],
+    button[data-testid*="download"],
+    button[data-testid*="button"] {
+        background: linear-gradient(45deg, var(--success-color), #34d399) !important;
         border: none !important;
         border-radius: 10px !important;
         color: white !important;
         font-weight: 600 !important;
         box-shadow: 0 6px 12px rgba(0,0,0,0.3) !important;
+    }
+    
+    button:hover,
+    .stButton button:hover,
+    .stDownloadButton button:hover,
+    button[kind="primary"]:hover,
+    button[kind="secondary"]:hover,
+    button[data-testid*="download"]:hover,
+    button[data-testid*="button"]:hover {
+        background: linear-gradient(45deg, #34d399, #6ee7b7) !important;
+        color: white !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.4) !important;
+    }
+    
+    /* Process button specific */
+    button[kind="primary"] {
+        background: linear-gradient(45deg, var(--accent-blue), var(--light-blue)) !important;
     }
     
     button[kind="primary"]:hover {
         background: linear-gradient(45deg, var(--light-blue), #60a5fa) !important;
-        color: white !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.4) !important;
     }
     
-    button[kind="primary"]:focus {
-        color: white !important;
-        background: linear-gradient(45deg, var(--accent-blue), var(--light-blue)) !important;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3) !important;
-    }
-    
-    button[kind="primary"]:active {
-        color: white !important;
-        background: linear-gradient(45deg, var(--accent-blue), var(--light-blue)) !important;
-    }
-    
-    /* SUPER AGGRESSIVE Download button styling */
-    button[data-testid*="download"] {
-        background: linear-gradient(45deg, var(--success-color), #34d399) !important;
-        border: none !important;
-        border-radius: 10px !important;
-        color: white !important;
-        font-weight: 600 !important;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3) !important;
-    }
-    
-    button[data-testid*="download"]:hover {
-        background: linear-gradient(45deg, #34d399, #6ee7b7) !important;
-        color: white !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.4) !important;
-    }
-    
-    button[data-testid*="download"]:focus {
-        color: white !important;
-        background: linear-gradient(45deg, var(--success-color), #34d399) !important;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3) !important;
-    }
-    
-    button[data-testid*="download"]:active {
-        color: white !important;
-        background: linear-gradient(45deg, var(--success-color), #34d399) !important;
-    }
-    
-    /* Alternative selectors for download buttons */
-    .stDownloadButton button {
-        background: linear-gradient(45deg, var(--success-color), #34d399) !important;
-        border: none !important;
-        border-radius: 10px !important;
-        color: white !important;
-        font-weight: 600 !important;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3) !important;
-    }
-    
-    .stDownloadButton button:hover {
-        background: linear-gradient(45deg, #34d399, #6ee7b7) !important;
-        color: white !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.4) !important;
-    }
-    
-    .stDownloadButton button:focus {
-        color: white !important;
-        background: linear-gradient(45deg, var(--success-color), #34d399) !important;
-    }
-    
-    .stDownloadButton button:active {
-        color: white !important;
-        background: linear-gradient(45deg, var(--success-color), #34d399) !important;
-    }
-    
-    /* All buttons fallback */
-    button {
-        color: white !important;
-    }
-    
-    button:hover {
-        color: white !important;
-    }
-    
-    button:focus {
-        color: white !important;
-    }
-    
-    button:active {
+    /* Force white text on ALL buttons */
+    button *,
+    .stButton button *,
+    .stDownloadButton button *,
+    button[kind="primary"] *,
+    button[kind="secondary"] *,
+    button[data-testid*="download"] *,
+    button[data-testid*="button"] * {
         color: white !important;
     }
     
@@ -450,7 +364,7 @@ st.markdown("""
         border-top: 1px solid var(--border-color);
     }
     
-    /* General text colors */
+    /* General overrides */
     .stMarkdown {
         color: var(--text-primary) !important;
     }
@@ -471,16 +385,82 @@ st.markdown("""
         color: var(--text-secondary) !important;
     }
     
-    /* Slider */
     .stSlider label {
         color: var(--text-primary) !important;
     }
-    
-    /* Progress bar text */
-    .stProgress + div {
-        color: var(--text-primary) !important;
-    }
     </style>
+    
+    <script>
+    // JavaScript to force styling after page load
+    setTimeout(function() {
+        // Force file uploader styling
+        const fileUploaders = document.querySelectorAll('[data-testid="stFileUploaderDropzone"]');
+        fileUploaders.forEach(function(uploader) {
+            uploader.style.backgroundColor = '#334155';
+            uploader.style.color = '#ffffff';
+            uploader.style.border = '2px dashed #3182ce';
+            uploader.style.borderRadius = '12px';
+            
+            // Force all child elements
+            const children = uploader.querySelectorAll('*');
+            children.forEach(function(child) {
+                child.style.backgroundColor = '#334155';
+                child.style.color = '#ffffff';
+            });
+        });
+        
+        // Force all buttons to have white text
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(function(button) {
+            button.style.color = 'white';
+            
+            // Force all child elements in buttons
+            const children = button.querySelectorAll('*');
+            children.forEach(function(child) {
+                child.style.color = 'white';
+            });
+        });
+        
+        // Force download button styling specifically
+        const downloadButtons = document.querySelectorAll('button[data-testid*="download"]');
+        downloadButtons.forEach(function(button) {
+            button.style.background = 'linear-gradient(45deg, #10b981, #34d399)';
+            button.style.color = 'white';
+            button.style.borderRadius = '10px';
+            button.style.fontWeight = '600';
+            button.style.border = 'none';
+            
+            const children = button.querySelectorAll('*');
+            children.forEach(function(child) {
+                child.style.color = 'white';
+            });
+        });
+    }, 1000);
+    
+    // Run styling fix every 2 seconds to catch dynamic content
+    setInterval(function() {
+        const fileUploaders = document.querySelectorAll('[data-testid="stFileUploaderDropzone"]');
+        fileUploaders.forEach(function(uploader) {
+            uploader.style.backgroundColor = '#334155';
+            uploader.style.color = '#ffffff';
+            
+            const children = uploader.querySelectorAll('*');
+            children.forEach(function(child) {
+                child.style.backgroundColor = '#334155';
+                child.style.color = '#ffffff';
+            });
+        });
+        
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(function(button) {
+            button.style.color = 'white';
+            const children = button.querySelectorAll('*');
+            children.forEach(function(child) {
+                child.style.color = 'white';
+            });
+        });
+    }, 2000);
+    </script>
 """, unsafe_allow_html=True)
 
 # Main header
@@ -701,7 +681,8 @@ if uploaded_files:
                         use_container_width=True,
                         help=f"Contains {total_after} unique references"
                     )
-                    st.write(f"**File size:** {len(cleaned_content.encode('utf-8')):,} bytes")
+                    # Use custom styled text instead of st.write
+                    st.markdown(f'<p style="color: #e2e8f0 !important;"><strong>File size:</strong> {len(cleaned_content.encode("utf-8")):,} bytes</p>', unsafe_allow_html=True)
                 
                 with col2:
                     if duplicates_content:
@@ -713,7 +694,8 @@ if uploaded_files:
                             use_container_width=True,
                             help=f"Contains {duplicates_removed} duplicate references for review"
                         )
-                        st.write(f"**File size:** {len(duplicates_content.encode('utf-8')):,} bytes")
+                        # Use custom styled text instead of st.write
+                        st.markdown(f'<p style="color: #e2e8f0 !important;"><strong>File size:</strong> {len(duplicates_content.encode("utf-8")):,} bytes</p>', unsafe_allow_html=True)
                     else:
                         st.info("No duplicates found")
                 
