@@ -192,11 +192,7 @@ with st.sidebar:
             <li><strong>Title similarity</strong> - Fuzzy matching algorithm</li>
         </ul>
         
-        <p><strong>Supported formats:</strong></p>
-        <ul>
-            <li>RIS (.ris)</li>
-            <li>NBIB (.nbib)</li>
-        </ul>
+        
     </div>
     """, unsafe_allow_html=True)
     
